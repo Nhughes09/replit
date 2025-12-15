@@ -1,81 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Database, ArrowUpRight, Clock, Server } from 'lucide-react';
+import React from 'react';
+import { ArrowDown } from 'lucide-react';
+import ProductSection from '../components/ProductSection';
 
 const Dashboard = () => {
-    const [status, setStatus] = useState({ last_update: 'Loading...', data_added: '...' });
-    const [catalog, setCatalog] = useState({});
-
-    useEffect(() => {
-        fetch('/api/catalog')
-            .then(res => res.json())
-            .then(data => {
-                setStatus(data.system_status);
-                setCatalog(data.verticals);
-            })
-            .catch(err => console.error(err));
-    }, []);
-
-    const stats = [
-        { label: 'Total Data Volume', value: '8.4 GB', icon: <Database className="text-blue-400" /> },
-        { label: 'Daily Records', value: '+9,000', icon: <ArrowUpRight className="text-emerald-400" /> },
-        { label: 'Last Update', value: status.last_update, icon: <Clock className="text-amber-400" /> },
-        { label: 'System Status', value: 'Active', icon: <Server className="text-purple-400" /> },
-    ];
-
     return (
-        <div className="space-y-8">
-            {/* Header */}
-            <div>
-                <h2 className="text-3xl font-bold text-white mb-2">Data Overview</h2>
-                <p className="text-slate-400">Real-time status of the HHeuristics Premium Data Engine.</p>
+        <div className="max-w-7xl mx-auto">
+            {/* Hero Section */}
+            <div className="min-h-[80vh] flex flex-col justify-center items-start pt-20 pb-20 border-b border-slate-800">
+                <div className="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-mono text-sm mb-6">
+                    v2.0 LIVE • PREMIUM DATA ENGINE ACTIVE
+                </div>
+                <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 tracking-tight">
+                    Data <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Alchemy</span>
+                </h1>
+                <p className="text-xl text-slate-400 max-w-2xl leading-relaxed mb-12">
+                    We don't just sell data. We transform raw signals into
+                    <span className="text-white font-bold"> actionable alpha</span>.
+                    Scroll down to explore our 5 proprietary intelligence pipelines,
+                    visualized in real-time.
+                </p>
+
+                <div className="flex gap-4">
+                    <a href="#fintech" className="bg-white text-slate-900 px-8 py-4 rounded-full font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
+                        Explore Pipelines <ArrowDown size={20} />
+                    </a>
+                    <div className="px-8 py-4 rounded-full border border-slate-700 text-slate-400 font-mono">
+                        5 Active Verticals
+                    </div>
+                </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="bg-slate-800 border border-slate-700 p-6 rounded-xl"
-                    >
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-2 bg-slate-700/50 rounded-lg">{stat.icon}</div>
-                        </div>
-                        <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                        <div className="text-sm text-slate-500">{stat.label}</div>
-                    </motion.div>
-                ))}
-            </div>
+            {/* Product Sections */}
+            <ProductSection vertical="fintech" id="fintech" />
+            <ProductSection vertical="ai_talent" id="ai_talent" />
+            <ProductSection vertical="esg" id="esg" />
+            <ProductSection vertical="regulatory" id="regulatory" />
+            <ProductSection vertical="supply_chain" id="supply_chain" />
 
-            {/* Products Grid */}
-            <h3 className="text-xl font-bold text-white mt-8 mb-4">Available Data Products</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(catalog).map(([name, files], i) => (
-                    <Link
-                        key={i}
-                        to={`/product/${name.split(' ')[0].toLowerCase() === 'fintech' ? 'fintech' :
-                            name.split(' ')[0].toLowerCase() === 'ai' ? 'ai_talent' :
-                                name.split(' ')[0].toLowerCase() === 'esg' ? 'esg' :
-                                    name.split(' ')[0].toLowerCase() === 'regulatory' ? 'regulatory' : 'supply_chain'}`}
-                        className="group bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/10"
-                    >
-                        <div className="flex justify-between items-start mb-4">
-                            <h4 className="font-bold text-lg text-white group-hover:text-blue-400 transition-colors">{name}</h4>
-                            <ArrowUpRight className="text-slate-600 group-hover:text-blue-400 transition-colors" size={20} />
-                        </div>
-                        <p className="text-sm text-slate-400 mb-6">
-                            {files.length} datasets available. Updated daily.
-                        </p>
-                        <div className="flex gap-2">
-                            <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">CSV</span>
-                            <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">REST API</span>
-                        </div>
-                    </Link>
-                ))}
+            {/* Footer */}
+            <div className="py-20 text-center text-slate-500 text-sm border-t border-slate-800 mt-20">
+                <p>© 2025 HHeuristics Data Products. All rights reserved.</p>
+                <p className="mt-2">Institutional Grade Data Intelligence.</p>
             </div>
         </div>
     );

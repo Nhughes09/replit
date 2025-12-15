@@ -9,7 +9,7 @@ const FintechThermograph = ({ data }) => {
         { label: "Day -7", value: 85, status: "Hiring Spike" },
         { label: "Day -5", value: 70, status: "Accumulation" },
         { label: "Day -3", value: 92, status: "Insider Moves" },
-        { label: "Today", value: 98, status: "Strong Signal" },
+        { label: "Today", value: data.smart_money_score || 98, status: "Strong Signal" },
     ];
 
     return (
@@ -35,8 +35,8 @@ const FintechThermograph = ({ data }) => {
                             animate={{ height: `${day.value}%` }}
                             transition={{ duration: 0.5, delay: i * 0.1 }}
                             className={`w-full rounded-t-sm ${day.value > 90 ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)]' :
-                                    day.value > 70 ? 'bg-orange-500' :
-                                        day.value > 40 ? 'bg-yellow-500' : 'bg-slate-700'
+                                day.value > 70 ? 'bg-orange-500' :
+                                    day.value > 40 ? 'bg-yellow-500' : 'bg-slate-700'
                                 }`}
                         />
 
