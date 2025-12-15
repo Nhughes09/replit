@@ -40,4 +40,4 @@ COPY --from=build --chown=user /app/dist $HOME/app/frontend/dist
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 # Command to run the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]

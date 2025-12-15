@@ -184,7 +184,7 @@ const ProductSection = ({ vertical, id }) => {
                                 <p className="text-sm">Connecting to ML Engine Status Stream...</p>
                             )}
 
-                            {status && (
+                            {status && status.progress !== undefined && (
                                 <div className="mt-4">
                                     <div className="flex justify-between text-xs text-slate-500 mb-1">
                                         <span>{status.step}</span>

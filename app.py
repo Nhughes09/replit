@@ -9,13 +9,13 @@ from datetime import datetime
 from update_data import update_dataset
 from product_manager import DataProductManager
 
-# Configure Logging
+# Logging Configuration
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler()]
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+print("--- STARTING HHEURISTICS BACKEND v2.1 (Status Enabled) ---")
 
 app = FastAPI()
 
