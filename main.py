@@ -41,11 +41,14 @@ async def startup_event():
     # Check if file exists and has more than just headers (approx check)
     if not os.path.exists(csv_path) or os.path.getsize(csv_path) < 100:
         logger.info("Dataset missing or empty on startup. Triggering initial data update...")
-        # We run this directly to ensure data is available soon, but in a way that doesn't block too long if possible.
-        # However, for the first run, blocking might be better to ensure data is there when user visits.
-        # But to be safe against timeouts, we'll let it run.
         try:
-            update_dataset()
+            # Run in a separate thread to avoid blocking the main event loop, 
+            # but await it so we don't start serving requests until we have data (optional, but requested behavior)
+            # Actually, for startup, we want to block until data is ready so the first user sees data.
+            # But we should use run_in_threadpool to be safe with async.
+            from starlette.concurrency import run_in_threadpool
+            await run_in_threadpool(update_dataset)
+            logger.info("Startup data update completed successfully.")
         except Exception as e:
             logger.error(f"Startup update failed: {e}")
 
