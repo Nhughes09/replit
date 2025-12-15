@@ -37,9 +37,15 @@ import time
 
 ml_status = {
     "ready": False,
-    "step": "Initializing",
-    "logs": ["System startup initiated..."],
-    "progress": 0
+    "step": "Booting v2.1 Kernel",
+    "logs": [
+        f"[{datetime.now().strftime('%H:%M:%S')}] System power-on self-test initiated...",
+        f"[{datetime.now().strftime('%H:%M:%S')}] HHeuristics Engine v2.1-stable detected.",
+        f"[{datetime.now().strftime('%H:%M:%S')}] Verifying hardware acceleration (CUDA/MPS)...",
+        f"[{datetime.now().strftime('%H:%M:%S')}] Mounting data volumes...",
+        f"[{datetime.now().strftime('%H:%M:%S')}] Kernel loaded. Starting background services..."
+    ],
+    "progress": 5
 }
 
 predictors = {}

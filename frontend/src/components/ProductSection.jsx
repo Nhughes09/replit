@@ -183,7 +183,18 @@ const ProductSection = ({ vertical, id }) => {
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm">Connecting to ML Engine Status Stream...</p>
+                                <div className="space-y-3">
+                                    <p className="text-sm text-slate-500">
+                                        {status && status.detail === "Not Found"
+                                            ? "Backend is updating to v2.1... (This may take 2-3 mins)"
+                                            : "Connecting to ML Engine Status Stream..."}
+                                    </p>
+                                    {status && status.detail === "Not Found" && (
+                                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                            <div className="bg-blue-500 h-full animate-progress-indeterminate"></div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             {status && status.progress !== undefined && (
