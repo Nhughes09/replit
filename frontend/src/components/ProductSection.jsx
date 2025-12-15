@@ -18,39 +18,48 @@ const ProductSection = ({ vertical, id }) => {
         setDebugLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 50));
     };
 
-    useEffect(() => {
+    const fetchData = async () => {
         setLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || '';
 
-        // Fetch Data Preview, Files, AND ML Prediction
-        Promise.all([
-            fetch(`${apiUrl}/api/preview/${vertical}`).then(res => res.json()),
-            fetch(`${apiUrl}/api/files/${vertical}`).then(res => res.json()),
-            fetch(`${apiUrl}/api/predict/${vertical}`).then(res => res.json())
-        ])
-            .then(([previewData, filesData, predictionData]) => {
-                console.log("Preview Data:", previewData);
-                console.log("Files Data:", filesData);
-                console.log("Prediction Data:", predictionData);
+        try {
+            // Fetch Data Preview, Files, AND ML Prediction
+            const [previewData, filesData, predictionData] = await Promise.all([
+                fetch(`${apiUrl}/api/preview/${vertical}`).then(res => res.json()),
+                fetch(`${apiUrl}/api/files/${vertical}`).then(res => res.json()),
+                fetch(`${apiUrl}/api/predict/${vertical}`).then(res => res.json())
+            ]);
 
-                if (previewData.error || predictionData.error || predictionData.detail) {
-                    console.error("API Error:", previewData.error || predictionData.error || predictionData.detail);
-                    addDebugLog(`API Error: ${previewData.error || predictionData.error || predictionData.detail}`);
-                    // Start polling status if error
+            console.log("Preview Data:", previewData);
+            console.log("Files Data:", filesData);
+            console.log("Prediction Data:", predictionData);
+
+            if (previewData.error || predictionData.error || predictionData.detail) {
+                const errorMsg = previewData.error || predictionData.error || predictionData.detail;
+                console.error("API Error:", errorMsg);
+                addDebugLog(`API Error: ${errorMsg}`);
+
+                // If error is due to loading, start polling
+                if (predictionData.error === "ML Engine Loading" || errorMsg === "Not Found") {
                     pollStatus();
                 }
-
+            } else {
                 setData(previewData);
                 setFiles(filesData.files || []);
                 setPrediction(predictionData);
                 setLoading(false);
-            })
-            .catch(err => {
-                console.error("Fetch Error:", err);
-                addDebugLog(`Fetch Error: ${err.message}`);
-                setLoading(false);
-                pollStatus();
-            });
+            }
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            addDebugLog(`Fetch Error: ${err.message}`);
+            // Only stop loading if we are NOT going to poll
+            // But here we want to poll if fetch failed
+            pollStatus();
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, [vertical]);
 
     const pollStatus = async () => {
@@ -64,26 +73,29 @@ const ProductSection = ({ vertical, id }) => {
             const dateHeader = res.headers.get('date');
             const serverHeader = res.headers.get('server');
 
+            if (res.status === 429) {
+                addDebugLog("⚠️ Status: 429 Too Many Requests (Rate Limited)");
+                addDebugLog("Waiting 15s before retry...");
+                setTimeout(pollStatus, 15000); // Backoff for 15s
+                return;
+            }
+
             if (res.status === 404) {
                 addDebugLog(`Status: 404 Not Found`);
                 addDebugLog(`Server: ${serverHeader} | Time: ${dateHeader}`);
 
                 // CHECK IF IT'S THE OLD BACKEND
-                // If /api/status is 404, check /api/version
                 try {
-                    // Add cache buster to prevent Cloudflare from serving stale 404s
                     const verRes = await fetch(`${apiUrl}/api/version?t=${Date.now()}`);
                     if (verRes.ok) {
                         const verData = await verRes.json();
                         addDebugLog(`✓ NEW BACKEND DETECTED: ${verData.version}`);
                         addDebugLog("Status endpoint should be available momentarily...");
                     } else {
-                        // If version check fails, check catalog (old endpoint)
                         const catRes = await fetch(`${apiUrl}/api/catalog?t=${Date.now()}`);
                         if (catRes.ok) {
                             addDebugLog("⚠️ DIAGNOSIS: OLD BACKEND DETECTED (v1.0)");
                             addDebugLog("The server is online but running old code.");
-                            addDebugLog("Waiting for v2.1 update to apply...");
                         } else {
                             addDebugLog("Diagnosis: Server might be completely down.");
                         }
@@ -106,8 +118,9 @@ const ProductSection = ({ vertical, id }) => {
                     setTimeout(pollStatus, 1000);
                     return;
                 } else {
-                    addDebugLog("System Ready. Reloading...");
-                    window.location.reload();
+                    addDebugLog("System Ready. Fetching Data...");
+                    // STOP RELOADING, JUST FETCH DATA
+                    fetchData();
                     return;
                 }
             } else {
