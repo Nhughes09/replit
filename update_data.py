@@ -58,13 +58,19 @@ def update_dataset():
     
     # Use ThreadPoolExecutor for parallel fetching
     # Finnhub free tier has rate limits, so we limit max_workers
+    total_symbols = len(SYMBOLS)
+    completed = 0
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         future_to_symbol = {executor.submit(fetch_finnhub_news, FINNHUB_KEY, symbol): symbol for symbol in SYMBOLS}
         
         for future in concurrent.futures.as_completed(future_to_symbol):
             symbol = future_to_symbol[future]
+            completed += 1
+            progress = int((completed / total_symbols) * 100)
             try:
                 sym, news = future.result()
+                logger.info(f"[{progress}%] Processed {sym}: Fetched {len(news)} items.")
                 for item in news:
                     processed_item = {
                         'symbol': sym,
@@ -79,7 +85,7 @@ def update_dataset():
                     }
                     all_news.append(processed_item)
             except Exception as e:
-                logger.error(f"Exception occurred while processing {symbol}: {e}")
+                logger.error(f"[{progress}%] Exception occurred while processing {symbol}: {e}")
 
     if not all_news:
         logger.warning("No news data fetched from any source. Exiting update.")
