@@ -41,11 +41,16 @@ class DataProductManager:
 
         try:
             df = pd.read_csv(master_file)
-            if 'scraped_date' not in df.columns:
+            
+            # Normalize date column
+            if 'date' in df.columns:
+                df['date'] = pd.to_datetime(df['date'])
+            elif 'scraped_date' in df.columns:
+                df['date'] = pd.to_datetime(df['scraped_date'])
+            else:
                 # Fallback if no date column
+                logger.warning(f"No date column found in {master_file}")
                 return {}
-                
-            df['date'] = pd.to_datetime(df['scraped_date'])
             
             created_files = {}
             

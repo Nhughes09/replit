@@ -3,5 +3,7 @@ uvicorn[standard]
 pandas>=2.2.0
 requests
 jinja2
-python-multipart
+uvicorn
 google-play-scraper
+faker
+numpy
