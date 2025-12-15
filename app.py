@@ -56,7 +56,7 @@ def initialize_ml_engine():
     
     try:
         ml_status["step"] = "Importing ML Libraries"
-        ml_status["logs"].append("Loading PyTorch, XGBoost, and Scikit-Learn...")
+        ml_status["logs"].append("Loading NumPy, Pandas, and Scikit-Learn...")
         ml_status["progress"] = 10
         
         # Lazy import to prevent startup timeout
@@ -67,7 +67,7 @@ def initialize_ml_engine():
         )
         
         ml_status["progress"] = 30
-        ml_status["logs"].append("ML Libraries loaded successfully.")
+        ml_status["logs"].append("ML Core Libraries loaded successfully.")
         
         ml_status["step"] = "Initializing PnL Tracker"
         pnl_tracker = PnLTracker()
