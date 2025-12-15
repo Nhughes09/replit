@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.9-slim
 
 # Set up a new user named "user" with user ID 1000
 RUN useradd -m -u 1000 user
@@ -8,7 +8,7 @@ USER user
 
 # Set home to the user's home directory
 ENV HOME=/home/user \
-	PATH=/home/user/.local/bin:$PATH
+    PATH=/home/user/.local/bin:$PATH
 
 # Set the working directory to the user's home directory
 WORKDIR $HOME/app
@@ -23,4 +23,5 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN mkdir -p data && chmod 777 data
 
 # Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Note: Using app:app because the file is now app.py
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]

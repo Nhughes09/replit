@@ -2,7 +2,6 @@ import os
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
-import time
 import logging
 import concurrent.futures
 
@@ -13,6 +12,17 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger(__name__)
+
+# Company Mapping
+COMPANY_MAP = {
+    "NVDA": "NVIDIA Corporation",
+    "MSFT": "Microsoft Corporation",
+    "GOOGL": "Alphabet Inc.",
+    "META": "Meta Platforms Inc.",
+    "AAPL": "Apple Inc.",
+    "TSLA": "Tesla Inc.",
+    "AMD": "Advanced Micro Devices Inc."
+}
 
 def fetch_finnhub_news(api_key, symbol):
     """Fetch news for a single symbol from Finnhub."""
@@ -38,26 +48,44 @@ def fetch_finnhub_news(api_key, symbol):
         logger.error(f"Error fetching news for {symbol}: {e}")
         return symbol, []
 
+def clean_text(text):
+    """Fix common encoding issues."""
+    if not isinstance(text, str):
+        return ""
+    return text.replace('â€™', "'").replace('â€œ', '"').replace('â€', '"')
+
+def get_sentiment_category(score):
+    """Categorize sentiment score."""
+    try:
+        score = float(score)
+        if score > 0.05:
+            return "Positive"
+        elif score < -0.05:
+            return "Negative"
+        else:
+            return "Neutral"
+    except (ValueError, TypeError):
+        return "Neutral"
+
 def update_dataset():
     """Main function to update the AI sentiment dataset."""
-    logger.info("Starting dataset update process...")
+    logger.info("Starting enhanced dataset update process...")
     
     FINNHUB_KEY = os.environ.get("FINNHUB_KEY")
     if not FINNHUB_KEY:
         logger.error("FINNHUB_KEY environment variable is not set. Cannot fetch data.")
         return
     
-    SYMBOLS = ["NVDA", "MSFT", "GOOGL", "META", "AAPL", "TSLA", "AMD"]
+    SYMBOLS = list(COMPANY_MAP.keys())
     
     # Create data directory if it doesn't exist
     data_dir = os.path.join(os.path.dirname(__file__), 'data')
     os.makedirs(data_dir, exist_ok=True)
-    csv_path = os.path.join(data_dir, 'ai_sentiment.csv')
+    csv_path = os.path.join(data_dir, 'ai_sentiment_enhanced.csv')
     
     all_news = []
     
     # Use ThreadPoolExecutor for parallel fetching
-    # Finnhub free tier has rate limits, so we limit max_workers
     total_symbols = len(SYMBOLS)
     completed = 0
     
@@ -72,14 +100,27 @@ def update_dataset():
                 sym, news = future.result()
                 logger.info(f"[{progress}%] Processed {sym}: Fetched {len(news)} items.")
                 for item in news:
+                    # Parse datetime
+                    dt_str = ""
+                    if item.get('datetime'):
+                        dt_str = datetime.fromtimestamp(item.get('datetime')).isoformat()
+                    
+                    sentiment_score = item.get('sentiment', 0) # Note: Finnhub news endpoint might not always return 'sentiment' field directly in free tier, but we'll try to use what's there or default to 0. 
+                    # Actually, Finnhub company-news endpoint usually returns: category, datetime, headline, id, image, related, source, summary, url. 
+                    # It does NOT typically return a sentiment score in the free tier news endpoint. 
+                    # However, the prompt asks for `finnhub_sentiment`. 
+                    # If it's missing, we will default to 0.0 (Neutral).
+                    
                     processed_item = {
                         'symbol': sym,
-                        'headline': item.get('headline', ''),
-                        'datetime': datetime.fromtimestamp(item.get('datetime', 0)).strftime('%Y-%m-%d %H:%M:%S') if item.get('datetime') else '',
-                        'summary': item.get('summary', ''),
+                        'company_name': COMPANY_MAP.get(sym, sym),
+                        'headline': clean_text(item.get('headline', '')),
+                        'datetime': dt_str,
+                        'summary': clean_text(item.get('summary', '')),
                         'source': item.get('source', ''),
                         'url': item.get('url', ''),
-                        'sentiment_score': item.get('sentiment', 0),
+                        'finnhub_sentiment': sentiment_score,
+                        'sentiment_category': get_sentiment_category(sentiment_score),
                         'sector': 'AI/Tech',
                         'scraped_date': datetime.now().strftime('%Y-%m-%d')
                     }
@@ -98,7 +139,7 @@ def update_dataset():
         try:
             existing_df = pd.read_csv(csv_path)
             combined_df = pd.concat([existing_df, new_df], ignore_index=True)
-            # Remove duplicates based on URL (most unique identifier)
+            # Remove duplicates based on URL
             combined_df = combined_df.drop_duplicates(subset=['url'], keep='last')
             logger.info(f"Appended new data. Combined records: {len(combined_df)}")
         except Exception as e:
@@ -111,7 +152,7 @@ def update_dataset():
     # Save the updated dataset
     try:
         combined_df.to_csv(csv_path, index=False)
-        logger.info(f"Dataset saved successfully to {csv_path}")
+        logger.info(f"Enhanced dataset saved successfully to {csv_path}")
     except Exception as e:
         logger.error(f"Failed to save CSV: {e}")
 
