@@ -49,13 +49,6 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Startup update failed: {e}")
 
-@app.post("/update-now")
-async def force_update(background_tasks: BackgroundTasks, username: str = Depends(verify_user)):
-    """Manually trigger a data update."""
-    logger.info(f"Manual update triggered by user: {username}")
-    background_tasks.add_task(update_dataset)
-    return RedirectResponse(url="/datasets", status_code=303)
-
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     logger.info("Home page accessed")
