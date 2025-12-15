@@ -17,7 +17,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 fake = Faker()
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+DATA_DIR = os.getenv("DATA_DIR", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 class PremiumDataEngine:

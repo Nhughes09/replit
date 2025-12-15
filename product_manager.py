@@ -6,17 +6,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 class DataProductManager:
-    def __init__(self, base_path="data"):
-        self.base_path = base_path
+    def __init__(self, data_dir=None):
+        self.data_dir = data_dir or os.getenv("DATA_DIR", "data")
         # Create directory structure
         self.dirs = {
-            'monthly': os.path.join(base_path, 'monthly'),
-            'quarterly': os.path.join(base_path, 'quarterly'),
-            'yearly': os.path.join(base_path, 'yearly'),
-            'bundles': os.path.join(base_path, 'bundles')
+            'bundles': os.path.join(self.data_dir, 'bundles'),
+            'yearly': os.path.join(self.data_dir, 'yearly'),
+            'quarterly': os.path.join(self.data_dir, 'quarterly'),
+            'monthly': os.path.join(self.data_dir, 'monthly')
         }
-        for dir_path in self.dirs.values():
-            os.makedirs(dir_path, exist_ok=True)
+        for d in self.dirs.values():
+            os.makedirs(d, exist_ok=True)
     
     def calculate_price(self, file_type, row_count):
         """Calculate optimal pricing based on data volume"""
@@ -101,19 +101,20 @@ class DataProductManager:
                         # Actually, let's stick to Q/Y/Bundle to avoid file explosion for this demo
                         # unless the user explicitly wants monthly. The prompt said "Tier 3: Monthly".
                         # Okay, let's do monthly.
-                        for month in range((quarter-1)*3 + 1, quarter*3 + 1):
-                            m_data = q_data[q_data['date'].dt.month == month]
-                            if len(m_data) > 0:
-                                m_path = os.path.join(self.dirs['monthly'], f'{product_type}_{year}_{month:02d}.csv')
-                                m_data.to_csv(m_path, index=False)
-                                created_files[m_path] = {
-                                    'type': 'monthly',
-                                    'period': f'{year}-{month:02d}',
-                                    'rows': len(m_data),
-                                    'size_mb': os.path.getsize(m_path) / (1024*1024),
-                                    'price': self.calculate_price('monthly', len(m_data)),
-                                    'description': f'{year}-{month:02d} Dataset'
-                                }
+                        # 4. Split by Month (DISABLED per user request)
+                        # for month in range((quarter-1)*3 + 1, quarter*3 + 1):
+                        #     m_data = q_data[q_data['date'].dt.month == month]
+                        #     if len(m_data) > 0:
+                        #         m_path = os.path.join(self.dirs['monthly'], f'{product_type}_{year}_{month:02d}.csv')
+                        #         m_data.to_csv(m_path, index=False)
+                        #         created_files[m_path] = {
+                        #             'type': 'monthly',
+                        #             'period': f'{year}-{month:02d}',
+                        #             'rows': len(m_data),
+                        #             'size_mb': os.path.getsize(m_path) / (1024*1024),
+                        #             'price': self.calculate_price('monthly', len(m_data)),
+                        #             'description': f'{year}-{month:02d} Dataset'
+                        #         }
 
             return created_files
             
