@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HHeuristics Data Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Advanced Visualization Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563EB;
+            --secondary: #10B981;
+            --dark: #1F2937;
+            --light: #F3F4F6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F9FAFB;
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+            color: white;
+            border-radius: 0 0 2rem 2rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.2);
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .vertical-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E7EB;
+            transition: transform 0.2s;
+        }
+
+        .vertical-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .vertical-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #F3F4F6;
+            padding-bottom: 1rem;
+        }
+
+        .vertical-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-fintech {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .badge-ai {
+            background: #E0E7FF;
+            color: #3730A3;
+        }
+
+        .badge-esg {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .badge-reg {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .badge-supply {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .truth-section {
+            background: #F8FAFC;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: #4B5563;
+        }
+
+        .truth-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .truth-item strong {
+            display: block;
+            color: #1F2937;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Visualization Container */
+        .viz-container {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+            height: 300px;
+            position: relative;
+        }
+
+        .viz-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .product-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: white;
+        }
+
+        .product-card:hover {
+            border-color: var(--primary);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-type {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+        }
+
+        .product-size {
+            font-size: 0.75rem;
+            color: #10B981;
+            font-weight: 600;
+            background: #ECFDF5;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #111827;
+        }
+
+        .product-desc {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .btn-download {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: background 0.2s;
+        }
+
+        .btn-download:hover {
+            background: #1D4ED8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="brand">
+            ⚡ HHeuristics <span>Marketplace</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Institutional-Grade Data</h1>
+            <p>Access our 5 proprietary datasets. Segmented by year, quarter, and month for optimal analysis.</p>
+        </div>
+
+        <!-- System Status Banner -->
+        <div
+            style="background: #ECFDF5; border: 1px solid #10B981; border-radius: 8px; padding: 1rem; margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div
+                    style="background: #10B981; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 700; font-size: 0.875rem;">
+                    PREMIUM ENGINE ACTIVE</div>
+                <div style="color: #065F46; font-weight: 500;">System Updated: {{ system_status.last_update }}</div>
+            </div>
+            <div style="color: #065F46; font-weight: 600;">
+                New Data Added: <span
+                    style="background: white; padding: 0.125rem 0.5rem; border-radius: 4px; border: 1px solid #10B981;">+{{
+                    system_status.data_added }}</span>
+            </div>
+        </div>
+
+        {% for v_name, products in verticals.items() %}
+        {% if products %}
+        <div class="vertical-section">
+            <div class="vertical-header">
+                <div class="vertical-title">
+                    <h2>
+                        {{ v_name }}
+                        {% if "Fintech" in v_name %}<span class="badge badge-fintech">Finance</span>{% endif %}
+                        {% if "AI" in v_name %}<span class="badge badge-ai">Tech</span>{% endif %}
+                        {% if "ESG" in v_name %}<span class="badge badge-esg">Sustainability</span>{% endif %}
+                        {% if "Regulatory" in v_name %}<span class="badge badge-reg">Legal</span>{% endif %}
+                        {% if "Supply" in v_name %}<span class="badge badge-supply">Logistics</span>{% endif %}
+                    </h2>
+                </div>
+            </div>
+
+            <!-- Truth Section -->
+            <div class="truth-section">
+                <div class="truth-grid">
+                    <div class="truth-item">
+                        <strong>How It Works</strong>
+                        {{ vertical_info[v_name].description }}
+                    </div>
+                    <div class="truth-item">
+                        <strong>Data Sources</strong>
+                        {{ vertical_info[v_name].methodology }}
+                    </div>
+                    <div class="truth-item">
+                        <strong>Update Frequency</strong>
+                        {{ vertical_info[v_name].frequency }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Visualization Container -->
+            <div class="viz-container">
+                <div class="viz-title">
+                    {% if "Fintech" in v_name %}VelocityTrack™ - Neobank Adoption Velocity{% endif %}
+                    {% if "AI" in v_name %}NeuralFrontier™ - Talent Migration Network{% endif %}
+                    {% if "ESG" in v_name %}EcoInsight™ - Greenwashing Radar{% endif %}
+                    {% if "Regulatory" in v_name %}ComplyPredict™ - Enforcement Risk Heatmap{% endif %}
+                    {% if "Supply" in v_name %}Resilience™ - Supply Chain Disruption Gauge{% endif %}
+                </div>
+                <canvas id="chart-{{ v_name | replace(' ', '-') | lower }}"></canvas>
+            </div>
+
+            <div class="product-grid">
+                {% for p in products %}
+                <div class="product-card">
+                    <span class="badge badge-{{ p.type }}">{{ p.type }}</span>
+                    <div class="product-name">{{ p.description }}</div>
+                    <div class="product-meta">
+                        {{ p.size_str }} • CSV Format
+                    </div>
+                    <div class="price-row">
+                        <!-- Price removed as requested -->
+                        <a href="{{ p.download_url }}" class="btn" style="width: 100%; text-align: center;">Download
+                            Dataset</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        {% if not verticals.values()|sum(start=[]) %}
+        <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+            <h3>Initializing Data Pipeline...</h3>
+            <p>Generating 5 datasets and segmenting files. Please refresh in 30 seconds.</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+
+</html>
