@@ -1,11 +1,9 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pandas as pd
 import os
 from datetime import datetime
-import secrets
 import uvicorn
 import logging
 from update_data import update_dataset
@@ -20,19 +18,6 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-security = HTTPBasic()
-
-def verify_user(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, "admin")
-    correct_password = secrets.compare_digest(credentials.password, "hheuristics2025")
-    if not (correct_username and correct_password):
-        logger.warning(f"Failed login attempt for user: {credentials.username}")
-        raise HTTPException(
-            status_code=401,
-            detail="Unauthorized",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
 
 @app.on_event("startup")
 async def startup_event():
@@ -58,8 +43,8 @@ async def home():
     return RedirectResponse(url="/datasets")
 
 @app.get("/datasets")
-async def datasets(request: Request, username: str = Depends(verify_user)):
-    logger.info(f"Datasets page accessed by user: {username}")
+async def datasets(request: Request):
+    logger.info(f"Datasets page accessed")
     datasets_info = []
     csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment.csv')
     
@@ -84,13 +69,12 @@ async def datasets(request: Request, username: str = Depends(verify_user)):
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "username": username,
         "datasets": datasets_info
     })
 
 @app.get("/download/ai")
-async def download_ai(username: str = Depends(verify_user)):
-    logger.info(f"Download requested by user: {username}")
+async def download_ai():
+    logger.info(f"Download requested")
     csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment.csv')
     if not os.path.exists(csv_path):
         logger.error("Download failed: Dataset not found")
