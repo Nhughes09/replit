@@ -42,7 +42,7 @@ class PremiumDataEngine:
         Product 1: Fintech Growth Intelligence
         Columns: company, date, download_velocity, review_sentiment, hiring_spike, 
                  feature_lead_score, adoption_velocity, churn_risk, funding_signal, 
-                 cac_proxy, premium_insight
+                 cac_proxy, premium_insight, alpha_window_days, smart_money_score
         """
         companies = {
             "Revolut": "com.revolut.revolut",
@@ -66,6 +66,12 @@ class PremiumDataEngine:
             funding_signal = "Strong" if hiring_spike == "Yes" and adoption_velocity > 80 else "Moderate" if adoption_velocity > 70 else "Weak"
             cac_proxy = f"${random.randint(35, 85)}"
             
+            # New Profit Metrics
+            alpha_window_days = random.randint(14, 45)
+            smart_money_score = random.randint(40, 98)
+            if hiring_spike == "Yes":
+                smart_money_score = random.randint(85, 99)
+            
             # Premium Insight Generation
             if hiring_spike == "Yes":
                 insight = f"Likely Series {random.choice(['E','F','G'])} in Q{random.randint(1,4)} based on hiring spike"
@@ -85,7 +91,9 @@ class PremiumDataEngine:
                 "churn_risk": churn_risk,
                 "funding_signal": funding_signal,
                 "cac_proxy": cac_proxy,
-                "premium_insight": insight
+                "premium_insight": insight,
+                "alpha_window_days": alpha_window_days,
+                "smart_money_score": smart_money_score
             })
         return data
 
@@ -94,7 +102,8 @@ class PremiumDataEngine:
         """
         Product 2: AI Talent & Capital Prediction
         Columns: company, date, github_stars_7d, arxiv_papers, citations, patents_filed, 
-                 investor_engagement, funding_probability, technical_momentum, talent_score, premium_insight
+                 investor_engagement, funding_probability, technical_momentum, talent_score, premium_insight,
+                 innovation_delay_days, benchmark_inflation_pct, flight_status
         """
         companies = ["OpenAI", "Anthropic", "StabilityAI", "Cohere", "Hugging Face"]
         
@@ -110,6 +119,13 @@ class PremiumDataEngine:
             tech_momentum = min(100, int((arxiv * 10) + (citations * 0.5) + (int(github_stars.replace('+',''))/10)))
             talent_score = random.randint(60, 99)
             funding_prob = f"{min(99, int(tech_momentum * 0.8 + talent_score * 0.1))}%"
+            
+            # New Profit Metrics
+            innovation_delay_days = random.choice([0, 0, 0, 30, 60, 90, 180])
+            benchmark_inflation_pct = random.randint(0, 50)
+            flight_status = "On Time" if innovation_delay_days == 0 else "Delayed"
+            if tech_momentum > 90:
+                flight_status = "Accelerating"
             
             if "High" in investor_engagement and tech_momentum > 80:
                 insight = "Strong Series D candidate - investor engagement at all-time high"
@@ -129,7 +145,10 @@ class PremiumDataEngine:
                 "funding_probability": funding_prob,
                 "technical_momentum": tech_momentum,
                 "talent_score": talent_score,
-                "premium_insight": insight
+                "premium_insight": insight,
+                "innovation_delay_days": innovation_delay_days,
+                "benchmark_inflation_pct": benchmark_inflation_pct,
+                "flight_status": flight_status
             })
         return data
 
@@ -138,7 +157,8 @@ class PremiumDataEngine:
         """
         Product 3: ESG Impact & Greenwashing Detector
         Columns: company, date, esg_claims, verifiable_actions, greenwashing_index, 
-                 regulatory_risk, stakeholder_score, impact_verified, premium_insight
+                 regulatory_risk, stakeholder_score, impact_verified, premium_insight,
+                 claims_psi, reality_psi, greenwashing_gap_pct
         """
         companies = ["Tesla", "ExxonMobil", "Unilever", "BlackRock", "Patagonia"]
         
@@ -152,6 +172,11 @@ class PremiumDataEngine:
             reg_risk = "High" if greenwashing_index > 60 else "Medium" if greenwashing_index > 30 else "Low"
             stakeholder_score = random.randint(40, 95)
             impact_verified = f"{int((verified/claims)*100)}%"
+            
+            # New Profit Metrics
+            claims_psi = 100
+            reality_psi = int((verified/claims) * 100)
+            greenwashing_gap_pct = claims_psi - reality_psi
             
             if greenwashing_index > 70:
                 insight = f"High greenwashing risk - {100-int((verified/claims)*100)}% of claims lack verification"
@@ -169,7 +194,10 @@ class PremiumDataEngine:
                 "regulatory_risk": reg_risk,
                 "stakeholder_score": stakeholder_score,
                 "impact_verified": impact_verified,
-                "premium_insight": insight
+                "premium_insight": insight,
+                "claims_psi": claims_psi,
+                "reality_psi": reality_psi,
+                "greenwashing_gap_pct": greenwashing_gap_pct
             })
         return data
 
@@ -178,7 +206,8 @@ class PremiumDataEngine:
         """
         Product 4: Regulatory Compliance Prediction
         Columns: company, date, enforcement_probability, compliance_gap, fines_estimate, 
-                 remediation_cost, whistleblower_risk, regulatory_foresight, premium_insight
+                 remediation_cost, whistleblower_risk, regulatory_foresight, premium_insight,
+                 enforcement_probability_pct, fine_impact_usd
         """
         companies = ["Meta", "Coinbase", "Amazon", "Pfizer", "Goldman Sachs"]
         
@@ -190,6 +219,10 @@ class PremiumDataEngine:
             remediation = f"${random.randint(5, 1000)}M"
             whistleblower = "High" if enf_prob > 60 else "Low"
             foresight = random.randint(20, 90)
+            
+            # New Profit Metrics
+            enforcement_probability_pct = enf_prob
+            fine_impact_usd = random.randint(10, 5000) * 1000000
             
             if enf_prob > 75:
                 insight = "High risk of antitrust action - compliance gaps significant"
@@ -207,7 +240,9 @@ class PremiumDataEngine:
                 "remediation_cost": remediation,
                 "whistleblower_risk": whistleblower,
                 "regulatory_foresight": foresight,
-                "premium_insight": insight
+                "premium_insight": insight,
+                "enforcement_probability_pct": enforcement_probability_pct,
+                "fine_impact_usd": fine_impact_usd
             })
         return data
 
@@ -216,7 +251,8 @@ class PremiumDataEngine:
         """
         Product 5: Supply Chain Resilience
         Columns: company, date, disruption_risk, recovery_days, single_point_failure, 
-                 cost_inflation, resilience_score, premium_insight
+                 cost_inflation, resilience_score, premium_insight,
+                 disruption_probability, days_to_impact
         """
         companies = ["Apple", "Ford", "Nike", "Toyota", "Samsung"]
         
@@ -227,6 +263,10 @@ class PremiumDataEngine:
             failure_pt = "High" if risk > 60 else "Medium" if risk > 30 else "Low"
             inflation = f"{round(random.uniform(1.0, 15.0), 1)}%"
             resilience = 100 - risk
+            
+            # New Profit Metrics
+            disruption_probability = risk
+            days_to_impact = random.randint(5, 60)
             
             if risk > 60:
                 insight = "High battery/chip supply risk - alternative suppliers needed urgently"
@@ -243,7 +283,9 @@ class PremiumDataEngine:
                 "single_point_failure": failure_pt,
                 "cost_inflation": inflation,
                 "resilience_score": resilience,
-                "premium_insight": insight
+                "premium_insight": insight,
+                "disruption_probability": disruption_probability,
+                "days_to_impact": days_to_impact
             })
         return data
 
