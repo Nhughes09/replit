@@ -287,7 +287,7 @@ const ProductSection = ({ vertical, id }) => {
                             <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
 
                             <div className="w-full relative z-10">
-                                {vertical === 'fintech' && <FintechThermograph data={latest} />}
+                                {vertical === 'fintech' && <FintechThermograph data={{ ...latest, history }} />}
                                 {vertical === 'ai_talent' && <AiAirportBoard data={latest} />}
                                 {vertical === 'esg' && <EsgPressureChamber data={latest} />}
                                 {vertical === 'regulatory' && (

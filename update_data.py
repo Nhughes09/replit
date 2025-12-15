@@ -29,6 +29,8 @@ class PremiumDataEngine:
             "regulatory": self.generate_regulatory_data,
             "supply_chain": self.generate_supply_chain_data
         }
+        # State tracking for continuity
+        self.fintech_state = {} 
 
     def generate_date_range(self, days_back=365):
         """Generate a list of dates for backfill."""
@@ -54,38 +56,64 @@ class PremiumDataEngine:
         
         data = []
         for name, pkg in companies.items():
-            # Simulate metrics based on "real" patterns
+            # Initialize state if needed
+            if name not in self.fintech_state:
+                self.fintech_state[name] = {
+                    "signal_phase": 0, # 0 = Quiet, >0 = Active Signal
+                    "base_velocity": 75,
+                    "sentiment_trend": 4.2
+                }
+            
+            state = self.fintech_state[name]
+            
+            # 1. Determine Signal State (The "Smart Money" Logic)
+            # If active, decrement. If quiet, small chance to start.
+            hiring_spike = "No"
+            if state["signal_phase"] > 0:
+                state["signal_phase"] -= 1
+                # Mid-signal spike
+                if state["signal_phase"] == 12: # Start of signal
+                    hiring_spike = "Yes"
+            else:
+                # 2% chance to start a new 14-day signal
+                if random.random() < 0.02:
+                    state["signal_phase"] = 14
+                    hiring_spike = "Yes"
+
+            # 2. Calculate Metrics based on State
             # Extreme Exponential Logic: Growth compounds daily
-            growth_factor = 1.02 # 2% daily compound growth
-            base_velocity = 75
-            # Calculate days since start of year (approx)
+            growth_factor = 1.02 
             days_passed = (date_obj - datetime(2025, 1, 1)).days
-            exponential_boost = base_velocity * (growth_factor ** max(0, days_passed/30)) # Monthly compounding feel
+            exponential_boost = state["base_velocity"] * (growth_factor ** max(0, days_passed/30))
             
-            download_velocity = int(np.random.normal(exponential_boost, 15)) 
-            review_sentiment = round(np.random.uniform(3.8, 4.9), 1)
-            hiring_spike = random.choice(["Yes", "No", "No", "No"]) # Rare event
+            # If signal is active, boost velocity and score
+            if state["signal_phase"] > 0:
+                # Velocity ramps up as signal matures (lagging indicator)
+                signal_maturity = (14 - state["signal_phase"]) / 14 # 0 to 1
+                velocity_boost = 50 * signal_maturity
+                
+                # Smart Money Score is high IMMEDIATELY (leading indicator)
+                smart_money_score = int(85 + (10 * (1 - signal_maturity)) + random.uniform(-2, 2))
+                
+                insight = f"Accumulation detected: {state['signal_phase']} days remaining in Alpha Window"
+            else:
+                velocity_boost = 0
+                smart_money_score = int(random.normalvariate(50, 10))
+                insight = "Stable accumulation - no institutional anomalies"
+
+            download_velocity = int(np.random.normal(exponential_boost + velocity_boost, 10))
+            
+            # Sentiment drift
+            state["sentiment_trend"] += random.uniform(-0.05, 0.05)
+            state["sentiment_trend"] = max(3.5, min(4.9, state["sentiment_trend"]))
+            review_sentiment = round(state["sentiment_trend"], 1)
+
             feature_lead = random.randint(60, 95)
-            
-            # Proprietary Calculations
             adoption_velocity = int((download_velocity * 0.6) + (feature_lead * 0.4))
             churn_risk = max(1, min(10, int((5.0 - review_sentiment) * 10)))
-            funding_signal = "Strong" if hiring_spike == "Yes" and adoption_velocity > 80 else "Moderate" if adoption_velocity > 70 else "Weak"
+            funding_signal = "Strong" if hiring_spike == "Yes" else "Moderate" if adoption_velocity > 100 else "Weak"
             cac_proxy = f"${random.randint(35, 85)}"
-            
-            # New Profit Metrics
-            alpha_window_days = random.randint(14, 45)
-            smart_money_score = random.randint(40, 98)
-            if hiring_spike == "Yes":
-                smart_money_score = random.randint(85, 99)
-            
-            # Premium Insight Generation
-            if hiring_spike == "Yes":
-                insight = f"Likely Series {random.choice(['E','F','G'])} in Q{random.randint(1,4)} based on hiring spike"
-            elif churn_risk > 7:
-                insight = "Critical churn risk detected due to negative sentiment clusters"
-            else:
-                insight = "Stable growth trajectory with optimized CAC"
+            alpha_window_days = state["signal_phase"] if state["signal_phase"] > 0 else 0
 
             data.append({
                 "company": name,

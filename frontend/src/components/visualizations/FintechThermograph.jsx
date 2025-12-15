@@ -2,61 +2,87 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const FintechThermograph = ({ data }) => {
-    // Generate mock "days" for the visualization if history is short
-    const days = [
-        { label: "Day -14", value: 30, status: "Quiet" },
-        { label: "Day -10", value: 45, status: "Quiet" },
-        { label: "Day -7", value: 85, status: "Hiring Spike" },
-        { label: "Day -5", value: 70, status: "Accumulation" },
-        { label: "Day -3", value: 92, status: "Insider Moves" },
-        { label: "Today", value: data.smart_money_score || 98, status: "Strong Signal" },
-    ];
+    // data is the 'latest' object, but we need history. 
+    // Actually, ProductSection passes 'latest' to this component in the current code: <FintechThermograph data={latest} />
+    // We need to change ProductSection to pass 'history' as well.
+    // But first, let's update this component to accept 'history'.
+    // Wait, the user prompt implies I should fix the blank graph.
+    // I will assume I will update ProductSection to pass history.
+
+    // For now, let's make this component robust.
+    const history = data.history || []; // Expecting history to be injected into data or passed as prop
+
+    // If no history, show loading or empty
+    if (!history || history.length === 0) return (
+        <div className="h-64 flex items-center justify-center text-slate-400 text-xs">
+            Initializing Smart Money Tracking...
+        </div>
+    );
 
     return (
-        <div className="w-full">
-            <div className="flex justify-between items-end mb-4">
-                <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Smart Money Thermograph</h4>
-                <div className="text-xs text-slate-400">Signal Strength (0-100)</div>
-            </div>
-
-            <div className="flex gap-2 h-32 items-end">
-                {days.map((day, i) => (
-                    <div key={i} className="flex-1 flex flex-col gap-2 group relative">
-                        {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-white border border-slate-200 p-2 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                            <div className="text-xs font-bold text-slate-900 mb-1">{day.label}</div>
-                            <div className="text-xs text-slate-500">{day.status}</div>
-                            <div className="text-xs text-blue-600 font-mono">Score: {day.value}</div>
-                        </div>
-
-                        {/* Bar */}
-                        <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: `${day.value}%` }}
-                            transition={{ duration: 0.5, delay: i * 0.1 }}
-                            className={`w-full rounded-t-sm ${day.value > 90 ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)]' :
-                                    day.value > 70 ? 'bg-orange-500' :
-                                        day.value > 40 ? 'bg-yellow-500' : 'bg-slate-300'
-                                }`}
-                        />
-
-                        {/* Label */}
-                        <div className="text-[10px] text-center text-slate-400 font-mono truncate">
-                            {day.label}
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="mt-4 flex justify-between items-center text-xs text-slate-500 border-t border-slate-200 pt-3">
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-300"></span> Quiet
-                    <span className="w-2 h-2 rounded-full bg-orange-500"></span> Accumulation
-                    <span className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.4)]"></span> High Conviction
-                </div>
+        <div className="w-full h-[300px]">
+            <div className="flex justify-between items-end mb-2">
                 <div>
-                    Alpha Window: <span className="text-slate-900 font-bold">31 Days Remaining</span>
+                    <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Smart Money Flow</h4>
+                    <div className="text-[10px] text-slate-400">Institutional Accumulation vs. Retail Volume</div>
                 </div>
+                <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">{data.smart_money_score || 0}/100</div>
+                    <div className="text-[10px] text-slate-500">Current Signal Strength</div>
+                </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={history}>
+                    <defs>
+                        <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis
+                        dataKey="date"
+                        tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                        axisLine={false}
+                        tickLine={false}
+                        minTickGap={30}
+                    />
+                    <YAxis yAxisId="left" hide domain={[0, 100]} />
+                    <YAxis yAxisId="right" orientation="right" hide domain={['auto', 'auto']} />
+                    <Tooltip
+                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                        labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+                        itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                    <Bar
+                        yAxisId="left"
+                        dataKey="smart_money_score"
+                        name="Smart Money Score"
+                        fill="url(#colorScore)"
+                        radius={[4, 4, 0, 0]}
+                        barSize={8}
+                    />
+                    <Line
+                        yAxisId="right"
+                        type="monotone"
+                        dataKey="download_velocity"
+                        name="Download Velocity"
+                        stroke="#f59e0b"
+                        strokeWidth={2}
+                        dot={false}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                </ComposedChart>
+            </ResponsiveContainer>
+
+            <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-500 bg-blue-50 p-2 rounded border border-blue-100">
+                <Info size={12} className="text-blue-600" />
+                <span>
+                    <strong>Profit Insight:</strong> High blue bars (Smart Money) followed by rising orange line (Volume) indicates
+                    institutional positioning before retail adoption.
+                </span>
             </div>
         </div>
     );
