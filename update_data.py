@@ -55,7 +55,14 @@ class PremiumDataEngine:
         data = []
         for name, pkg in companies.items():
             # Simulate metrics based on "real" patterns
-            download_velocity = int(np.random.normal(75, 15)) # Normal dist
+            # Extreme Exponential Logic: Growth compounds daily
+            growth_factor = 1.02 # 2% daily compound growth
+            base_velocity = 75
+            # Calculate days since start of year (approx)
+            days_passed = (date_obj - datetime(2025, 1, 1)).days
+            exponential_boost = base_velocity * (growth_factor ** max(0, days_passed/30)) # Monthly compounding feel
+            
+            download_velocity = int(np.random.normal(exponential_boost, 15)) 
             review_sentiment = round(np.random.uniform(3.8, 4.9), 1)
             hiring_spike = random.choice(["Yes", "No", "No", "No"]) # Rare event
             feature_lead = random.randint(60, 95)
@@ -109,8 +116,13 @@ class PremiumDataEngine:
         
         data = []
         for co in companies:
-            github_stars = f"+{int(np.random.exponential(200))}"
-            arxiv = np.random.poisson(2)
+            # Exponential Interest Curve
+            days_passed = (date_obj - datetime(2025, 1, 1)).days
+            interest_compound = 1.015 ** max(0, days_passed/7) # Weekly compounding
+            
+            base_stars = 200
+            github_stars = f"+{int(np.random.exponential(base_stars * interest_compound))}"
+            arxiv = np.random.poisson(2 * (1 + days_passed/365)) # Linear growth for papers
             citations = int(np.random.exponential(50))
             patents = np.random.poisson(0.5)
             investor_engagement = random.choice(["High", "Medium", "Low"])
