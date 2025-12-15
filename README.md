@@ -37,34 +37,33 @@ A FastAPI application that generates, updates, and sells proprietary market rese
    python update_data.py
    ```
 
-## Deployment on Render
+## Deployment on Hugging Face Spaces
 
-This app is designed to be deployed on [Render.com](https://render.com).
+This app is optimized for **Hugging Face Spaces** (Docker SDK).
 
-### 1. Web Service Setup
-- Connect your GitHub repository to Render.
-- Create a new **Web Service**.
-- **Runtime**: Python 3
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- **Environment Variables**:
-    - `FINNHUB_KEY`: Your Finnhub API Key.
-    - `PYTHON_VERSION`: `3.11.0` (optional, handled by runtime.txt).
+### 1. Create a Space
+1.  Go to [huggingface.co/new-space](https://huggingface.co/new-space).
+2.  **Name**: `hheuristics-datasets` (or similar).
+3.  **SDK**: Select **Docker**.
+4.  **Template**: Select **Blank**.
+5.  **Space Hardware**: Free (CPU basic) is sufficient.
 
-### 2. GitHub Actions (Free Cron) Setup
-To keep the daily updates **free**, we use GitHub Actions instead of Render's paid Cron Jobs.
+### 2. Connect Repository
+You can either:
+-   **Sync with GitHub**: In the Space settings, connect this GitHub repository.
+-   **Direct Push**: Add the Space as a remote and push directly:
+    ```bash
+    git remote add space https://huggingface.co/spaces/YOUR_USERNAME/SPACE_NAME
+    git push space main
+    ```
 
-1.  Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions**.
-2.  Click **New repository secret**.
-3.  **Name**: `FINNHUB_KEY`
-4.  **Value**: Your Finnhub API Key.
-5.  Click **Add secret**.
+### 3. Environment Variables
+1.  Go to your Space's **Settings** tab.
+2.  Scroll to **Variables and secrets**.
+3.  Add a **Secret**:
+    -   Key: `FINNHUB_KEY`
+    -   Value: Your Finnhub API Key.
 
-The workflow is already set up in `.github/workflows/daily_update.yml`. It will:
-- Run daily at 12:00 UTC.
-- Fetch new data.
-- Commit the updated CSV back to the repository.
-- Render will detect the commit and automatically redeploy the website with the new data.
+### 4. Background Updates
+The GitHub Action (`.github/workflows/daily_update.yml`) will still handle the daily data updates for free! It pushes the new data to GitHub, which will trigger a rebuild of your Space if you have connected them.
 
-### 3. Live URL
-The app will be accessible at: `https://replit-lml7.onrender.com`
