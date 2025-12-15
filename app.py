@@ -64,9 +64,12 @@ async def marketplace(request: Request):
                     fpath = os.path.join(dpath, f)
                     # We need to reconstruct the metadata or just use file stats
                     # For this demo, we'll do a quick lookup or re-calc
-                    # To keep it fast, we'll just use file size and name parsing
-                    size_mb = os.path.getsize(fpath) / (1024*1024)
-                    rows = 0 # Expensive to count every time, maybe skip or estimate
+                    # Calculate size
+                    size_bytes = os.path.getsize(fpath)
+                    if size_bytes < 1024 * 1024:
+                        size_str = f"{size_bytes / 1024:.1f} KB"
+                    else:
+                        size_str = f"{size_bytes / (1024 * 1024):.1f} MB"
                     
                     # Parse type from folder
                     p_type = dtype
@@ -75,12 +78,35 @@ async def marketplace(request: Request):
                         'type': p_type,
                         'period': f.split('_')[-1].replace('.csv', ''), # Rough parse
                         'rows': "N/A", # Skip for speed
-                        'size_mb': size_mb,
+                        'size_str': size_str,
                         'price': manager.calculate_price(p_type, 1000), # Dummy row count for price
                         'description': f"{f.replace('_', ' ').title()}"
                     }
 
     catalog = manager.generate_catalog(all_products)
+    # Update catalog with formatted size since manager might expect size_mb
+    # Actually, manager.generate_catalog expects 'size_mb' in the dict to format it, 
+    # OR we can just pass our pre-formatted string if we modify how we use it.
+    # Let's look at product_manager.py or just override it here.
+    # The manager.generate_catalog likely formats it again. 
+    # Let's just manually build the catalog list here to be safe and simple, 
+    # OR update the dict keys to match what the template expects.
+    
+    # Re-building catalog list manually to ensure 'size_str' is passed correctly
+    catalog = []
+    for filepath, info in all_products.items():
+        catalog.append({
+            'filename': os.path.basename(filepath),
+            'type': info['type'],
+            'period': info['period'],
+            'size_str': info['size_str'],
+            'description': info['description'],
+            'download_url': f"/download/{os.path.basename(filepath)}"
+        })
+        
+    # Sort by type (Bundle -> Yearly -> Quarterly -> Monthly)
+    order = {'bundle': 0, 'yearly': 1, 'quarterly': 2, 'monthly': 3}
+    catalog.sort(key=lambda x: (order.get(x['type'], 99), x['period']))
     
     # Group by Vertical for UI
     verticals = {
