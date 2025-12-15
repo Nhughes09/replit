@@ -57,7 +57,8 @@ const ProductSection = ({ vertical, id }) => {
         const apiUrl = import.meta.env.VITE_API_URL || '';
         try {
             addDebugLog(`Polling ${apiUrl}/api/status...`);
-            const res = await fetch(`${apiUrl}/api/status`);
+            // Add cache buster
+            const res = await fetch(`${apiUrl}/api/status?t=${Date.now()}`);
 
             // Log Headers for debugging
             const dateHeader = res.headers.get('date');
@@ -70,14 +71,15 @@ const ProductSection = ({ vertical, id }) => {
                 // CHECK IF IT'S THE OLD BACKEND
                 // If /api/status is 404, check /api/version
                 try {
-                    const verRes = await fetch(`${apiUrl}/api/version`);
+                    // Add cache buster to prevent Cloudflare from serving stale 404s
+                    const verRes = await fetch(`${apiUrl}/api/version?t=${Date.now()}`);
                     if (verRes.ok) {
                         const verData = await verRes.json();
                         addDebugLog(`✓ NEW BACKEND DETECTED: ${verData.version}`);
                         addDebugLog("Status endpoint should be available momentarily...");
                     } else {
                         // If version check fails, check catalog (old endpoint)
-                        const catRes = await fetch(`${apiUrl}/api/catalog`);
+                        const catRes = await fetch(`${apiUrl}/api/catalog?t=${Date.now()}`);
                         if (catRes.ok) {
                             addDebugLog("⚠️ DIAGNOSIS: OLD BACKEND DETECTED (v1.0)");
                             addDebugLog("The server is online but running old code.");
