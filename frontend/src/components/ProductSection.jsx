@@ -68,15 +68,23 @@ const ProductSection = ({ vertical, id }) => {
                 addDebugLog(`Server: ${serverHeader} | Time: ${dateHeader}`);
 
                 // CHECK IF IT'S THE OLD BACKEND
-                // If /api/status is 404 but /api/catalog works, it's the old version.
+                // If /api/status is 404, check /api/version
                 try {
-                    const catRes = await fetch(`${apiUrl}/api/catalog`);
-                    if (catRes.ok) {
-                        addDebugLog("⚠️ DIAGNOSIS: OLD BACKEND DETECTED");
-                        addDebugLog("The server is online but running v1.0 code.");
-                        addDebugLog("Waiting for v2.1 update to apply...");
+                    const verRes = await fetch(`${apiUrl}/api/version`);
+                    if (verRes.ok) {
+                        const verData = await verRes.json();
+                        addDebugLog(`✓ NEW BACKEND DETECTED: ${verData.version}`);
+                        addDebugLog("Status endpoint should be available momentarily...");
                     } else {
-                        addDebugLog("Diagnosis: Server might be completely down.");
+                        // If version check fails, check catalog (old endpoint)
+                        const catRes = await fetch(`${apiUrl}/api/catalog`);
+                        if (catRes.ok) {
+                            addDebugLog("⚠️ DIAGNOSIS: OLD BACKEND DETECTED (v1.0)");
+                            addDebugLog("The server is online but running old code.");
+                            addDebugLog("Waiting for v2.1 update to apply...");
+                        } else {
+                            addDebugLog("Diagnosis: Server might be completely down.");
+                        }
                     }
                 } catch (err) {
                     addDebugLog("Diagnosis Check Failed.");

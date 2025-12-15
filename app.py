@@ -346,6 +346,11 @@ async def download_dataset(filename: str):
         logger.error(f"Error downloading file: {e}")
         raise HTTPException(500, str(e))
 
+@app.get("/api/version")
+async def get_version():
+    """Get backend version"""
+    return JSONResponse({"version": "v2.1", "status": "online"})
+
 @app.get("/api/status")
 async def get_ml_status():
     """Get initialization status of ML engine"""

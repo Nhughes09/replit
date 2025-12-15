@@ -19,7 +19,7 @@ RUN useradd -m -u 1000 user
 ENV DATA_DIR=/data
 RUN mkdir -p $DATA_DIR && chown -R user:user $DATA_DIR && chmod 777 $DATA_DIR
 
-# SwitchRUN echo "Cache Buster: v18" user
+# SwitchRUN echo "Cache Buster: v19" user
 USER user
 
 # Set home to the user's home directory
