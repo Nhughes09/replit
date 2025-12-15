@@ -269,6 +269,12 @@ async def download_dataset(filename: str):
 @app.get("/")
 async def read_root():
     """Serve React App"""
+    # If running locally with start_full_stack.sh, redirect to Vite
+    if os.getenv("LOCAL_DEV") == "true":
+        return HTMLResponse(
+            "<h1>Redirecting to Local Frontend...</h1><script>window.location.href='http://localhost:5173'</script>"
+        )
+
     if os.path.exists("frontend/dist/index.html"):
         return FileResponse("frontend/dist/index.html")
     return HTMLResponse("<h1>Building Frontend... Please wait a moment and refresh.</h1>")

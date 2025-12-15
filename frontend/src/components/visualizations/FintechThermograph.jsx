@@ -1,16 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { Info } from 'lucide-react';
 
 const FintechThermograph = ({ data }) => {
-    // data is the 'latest' object, but we need history. 
-    // Actually, ProductSection passes 'latest' to this component in the current code: <FintechThermograph data={latest} />
-    // We need to change ProductSection to pass 'history' as well.
-    // But first, let's update this component to accept 'history'.
-    // Wait, the user prompt implies I should fix the blank graph.
-    // I will assume I will update ProductSection to pass history.
-
-    // For now, let's make this component robust.
-    const history = data.history || []; // Expecting history to be injected into data or passed as prop
+    console.log("FintechThermograph Data:", data);
+    const history = data.history || [];
 
     // If no history, show loading or empty
     if (!history || history.length === 0) return (

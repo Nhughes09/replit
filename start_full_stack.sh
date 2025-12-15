@@ -9,7 +9,8 @@ python3 -c "from update_data import update_dataset; update_dataset()"
 
 echo "🚀 Starting Local Backend (FastAPI)..."
 # Start uvicorn in the background
-uvicorn app:app --host 127.0.0.1 --port 8000 &
+# Start uvicorn in the background with LOCAL_DEV flag
+LOCAL_DEV=true uvicorn app:app --host 127.0.0.1 --port 8000 &
 BACKEND_PID=$!
 
 echo "🚀 Starting Local Frontend (Vite)..."
