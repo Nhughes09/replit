@@ -168,6 +168,45 @@ async def marketplace(request: Request):
                 "frequency": "Daily (00:00 UTC)"
             },
             "Supply Chain": {
+                "description": "Detects upstream disruption risks in critical sectors.",
+                "methodology": "Aggregates logistics reports and sector-specific news for Semiconductors, Auto, and Pharma.",
+                "frequency": "Daily (00:00 UTC)"
+            }
+        }
+        
+        # Load System Status
+        import json
+        system_status = {"last_update": "Initializing...", "data_added": "0 KB"}
+        status_path = os.path.join("data", "status.json")
+        if os.path.exists(status_path):
+            try:
+                with open(status_path, "r") as f:
+                    st = json.load(f)
+                    added_bytes = st.get("total_added_bytes", 0)
+                    if added_bytes < 1024 * 1024:
+                        added_str = f"{added_bytes / 1024:.1f} KB"
+                    else:
+                        added_str = f"{added_bytes / (1024 * 1024):.1f} MB"
+                    
+                    system_status = {
+                        "last_update": st.get("last_update", "Unknown"),
+                        "data_added": added_str
+                    }
+            except Exception as e:
+                logger.error(f"Error reading status: {e}")
+        
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "verticals": verticals,
+            "vertical_info": vertical_info,
+            "system_status": system_status
+        })
+    except Exception as e:
+        logger.error(f"Error rendering marketplace: {e}")
+        logger.error(traceback.format_exc())
+        raise e
+
+@app.get("/download/{filename}")
 async def download_file(filename: str):
     # Search in all dirs
     for dtype in ['bundles', 'yearly', 'quarterly', 'monthly']:
