@@ -52,10 +52,10 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Startup update failed: {e}")
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    logger.info("Home page accessed")
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+@app.get("/")
+async def home():
+    logger.info("Root accessed, redirecting to /datasets")
+    return RedirectResponse(url="/datasets")
 
 @app.get("/datasets")
 async def datasets(request: Request, username: str = Depends(verify_user)):
@@ -68,12 +68,15 @@ async def datasets(request: Request, username: str = Depends(verify_user)):
             df = pd.read_csv(csv_path)
             # Check if it's just headers
             if len(df) > 0:
+                logger.info(f"Found dataset with {len(df)} records. Adding to view.")
                 datasets_info.append({
                     "name": "AI & Tech Sentiment Tracker",
                     "records": len(df),
                     "updated": df['scraped_date'].max() if 'scraped_date' in df.columns else "N/A",
                     "download_url": "/download/ai"
                 })
+            else:
+                logger.warning("Dataset file exists but is empty (0 records).")
         except Exception as e:
             logger.error(f"Error reading dataset: {e}", exc_info=True)
     else:
