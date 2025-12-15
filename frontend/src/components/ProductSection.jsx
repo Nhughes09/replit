@@ -291,92 +291,113 @@ const ProductSection = ({ vertical, id }) => {
                                 {vertical === 'ai_talent' && <AiAirportBoard data={latest} />}
                                 {vertical === 'esg' && <EsgPressureChamber data={latest} />}
                                 {vertical === 'regulatory' && (
-                                    <div className="h-[300px] w-full">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <ComposedChart data={history}>
-                                                <defs>
-                                                    <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
-                                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                                                <XAxis
-                                                    dataKey="date"
-                                                    tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                />
-                                                <YAxis
-                                                    hide
-                                                    domain={[0, 100]}
-                                                />
-                                                <Tooltip
-                                                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                    labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
-                                                    itemStyle={{ color: '#0f172a', fontSize: '12px', fontWeight: 'bold' }}
-                                                />
-                                                <Area
-                                                    type="monotone"
-                                                    dataKey="enforcement_probability_pct"
-                                                    name="Enforcement Probability"
-                                                    stroke="#ef4444"
-                                                    fillOpacity={1}
-                                                    fill="url(#colorRisk)"
-                                                    strokeWidth={2}
-                                                />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="regulatory_foresight"
-                                                    name="Compliance Readiness"
-                                                    stroke="#3b82f6"
-                                                    strokeWidth={2}
-                                                    strokeDasharray="4 4"
-                                                    dot={false}
-                                                />
-                                                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                            </ComposedChart>
-                                        </ResponsiveContainer>
+                                    <div className="h-[400px] w-full">
+                                        {history && history.length > 0 ? (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <ComposedChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                                    <defs>
+                                                        <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                                    <XAxis
+                                                        dataKey="date"
+                                                        tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        minTickGap={30}
+                                                    />
+                                                    <YAxis
+                                                        domain={[0, 100]}
+                                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                        labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+                                                        itemStyle={{ color: '#0f172a', fontSize: '12px', fontWeight: 'bold' }}
+                                                    />
+                                                    <Area
+                                                        type="monotone"
+                                                        dataKey="enforcement_probability_pct"
+                                                        name="Enforcement Probability"
+                                                        stroke="#ef4444"
+                                                        fillOpacity={1}
+                                                        fill="url(#colorRisk)"
+                                                        strokeWidth={2}
+                                                    />
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="regulatory_foresight"
+                                                        name="Compliance Readiness"
+                                                        stroke="#3b82f6"
+                                                        strokeWidth={2}
+                                                        strokeDasharray="4 4"
+                                                        dot={false}
+                                                    />
+                                                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                                </ComposedChart>
+                                            </ResponsiveContainer>
+                                        ) : (
+                                            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                                                No historical data available for Regulatory
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 {vertical === 'supply_chain' && (
-                                    <div className="h-[300px] w-full">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <LineChart data={history}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                                                <XAxis
-                                                    dataKey="date"
-                                                    tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                />
-                                                <YAxis hide domain={[0, 100]} />
-                                                <Tooltip
-                                                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                    labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
-                                                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                                                />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="disruption_risk"
-                                                    name="Disruption Risk"
-                                                    stroke="#f59e0b"
-                                                    strokeWidth={2}
-                                                    dot={false}
-                                                />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="resilience_score"
-                                                    name="Resilience Score"
-                                                    stroke="#10b981"
-                                                    strokeWidth={2}
-                                                    dot={false}
-                                                />
-                                                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                                            </LineChart>
-                                        </ResponsiveContainer>
+                                    <div className="h-[400px] w-full">
+                                        {history && history.length > 0 ? (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={history} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                                    <XAxis
+                                                        dataKey="date"
+                                                        tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        minTickGap={30}
+                                                    />
+                                                    <YAxis
+                                                        domain={[0, 100]}
+                                                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                        labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+                                                        itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                                    />
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="disruption_risk"
+                                                        name="Disruption Risk"
+                                                        stroke="#f59e0b"
+                                                        strokeWidth={2}
+                                                        dot={false}
+                                                    />
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="resilience_score"
+                                                        name="Resilience Score"
+                                                        stroke="#10b981"
+                                                        strokeWidth={2}
+                                                        dot={false}
+                                                    />
+                                                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        ) : (
+                                            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                                                No historical data available for Supply Chain
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

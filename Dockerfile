@@ -5,7 +5,7 @@ COPY frontend/package.json frontend/package-lock.json* ./
 RUN npm install
 
 # Force rebuild of frontend
-ARG CACHE_BUST=v11
+ARG CACHE_BUST=v12
 COPY frontend/ .
 RUN npm run build
 
