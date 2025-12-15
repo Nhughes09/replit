@@ -98,10 +98,40 @@ async def marketplace(request: Request):
         elif "esg" in name: verticals["ESG Sentiment"].append(item)
         elif "regulatory" in name: verticals["Regulatory Risk"].append(item)
         elif "supply" in name: verticals["Supply Chain"].append(item)
+        
+    # Product Metadata (The "Truth")
+    vertical_info = {
+        "Fintech Growth": {
+            "description": "Tracks the velocity of Neobank adoption and market sentiment.",
+            "methodology": "Aggregates daily app store ratings/reviews (Google Play) and financial news sentiment (Finnhub).",
+            "frequency": "Daily (00:00 UTC)"
+        },
+        "AI Talent": {
+            "description": "Monitors the migration of top research talent across major AI labs.",
+            "methodology": "Tracks job posting velocity and research paper affiliations for OpenAI, Anthropic, DeepMind, etc.",
+            "frequency": "Daily (00:00 UTC)"
+        },
+        "ESG Sentiment": {
+            "description": "Quantifies public perception of corporate sustainability efforts.",
+            "methodology": "NLP analysis of corporate ESG reports, press releases, and news coverage.",
+            "frequency": "Daily (00:00 UTC)"
+        },
+        "Regulatory Risk": {
+            "description": "Early warning system for enforcement actions and policy shifts.",
+            "methodology": "Monitors press releases and enforcement logs from SEC, FTC, FDA, and EPA.",
+            "frequency": "Daily (00:00 UTC)"
+        },
+        "Supply Chain": {
+            "description": "Detects upstream disruption risks in critical sectors.",
+            "methodology": "Aggregates logistics reports and sector-specific news for Semiconductors, Auto, and Pharma.",
+            "frequency": "Daily (00:00 UTC)"
+        }
+    }
     
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "verticals": verticals
+        "verticals": verticals,
+        "vertical_info": vertical_info
     })
 
 @app.get("/download/{filename}")

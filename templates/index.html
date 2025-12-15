@@ -196,6 +196,37 @@
                     {{ products|length }} Products Available
                 </span>
             </div>
+
+            <!-- The Truth Section -->
+            <div
+                style="background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <div
+                        style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                        How It Works</div>
+                    <div style="font-size: 0.95rem; color: var(--text-primary);">{{ vertical_info[v_name].description }}
+                    </div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <div
+                        style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                        Data Sources</div>
+                    <div style="font-size: 0.95rem; color: var(--text-primary);">{{ vertical_info[v_name].methodology }}
+                    </div>
+                </div>
+                <div style="flex: 0 0 auto;">
+                    <div
+                        style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                        Update Frequency</div>
+                    <div
+                        style="font-size: 0.95rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                        <span
+                            style="display: inline-block; width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></span>
+                        {{ vertical_info[v_name].frequency }}
+                    </div>
+                </div>
+            </div>
+
             <div class="product-grid">
                 {% for p in products %}
                 <div class="product-card">
@@ -205,8 +236,9 @@
                         {{ p.size_mb }} MB • CSV Format
                     </div>
                     <div class="price-row">
-                        <div class="price">${{ p.price }}</div>
-                        <a href="{{ p.download_url }}" class="btn">Download</a>
+                        <!-- Price removed as requested -->
+                        <a href="{{ p.download_url }}" class="btn" style="width: 100%; text-align: center;">Download
+                            Dataset</a>
                     </div>
                 </div>
                 {% endfor %}
