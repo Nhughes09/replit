@@ -184,6 +184,12 @@ def update_dataset():
     """Run all 5 pipelines."""
     logger.info("Starting Multi-Vertical Data Pipeline...")
     
+    # Track sizes before
+    before_sizes = {}
+    for f in os.listdir(DATA_DIR):
+        if f.endswith(".csv"):
+            before_sizes[f] = os.path.getsize(os.path.join(DATA_DIR, f))
+            
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         futures = [
             executor.submit(generate_fintech_data),
@@ -194,7 +200,30 @@ def update_dataset():
         ]
         concurrent.futures.wait(futures)
         
-    logger.info("All datasets updated.")
+    # Calculate Delta
+    total_added_bytes = 0
+    details = {}
+    for f in os.listdir(DATA_DIR):
+        if f.endswith(".csv"):
+            new_size = os.path.getsize(os.path.join(DATA_DIR, f))
+            old_size = before_sizes.get(f, 0)
+            added = new_size - old_size
+            if added > 0:
+                total_added_bytes += added
+                details[f] = added
+                
+    # Save Status
+    import json
+    status = {
+        "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "total_added_bytes": total_added_bytes,
+        "details": details
+    }
+    with open(os.path.join(DATA_DIR, "status.json"), "w") as f:
+        json.dump(status, f)
+        
+    logger.info(f"All datasets updated. Total added: {total_added_bytes} bytes.")
+    return status
 
 if __name__ == "__main__":
     update_dataset()

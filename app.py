@@ -168,23 +168,6 @@ async def marketplace(request: Request):
                 "frequency": "Daily (00:00 UTC)"
             },
             "Supply Chain": {
-                "description": "Detects upstream disruption risks in critical sectors.",
-                "methodology": "Aggregates logistics reports and sector-specific news for Semiconductors, Auto, and Pharma.",
-                "frequency": "Daily (00:00 UTC)"
-            }
-        }
-        
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "verticals": verticals,
-            "vertical_info": vertical_info
-        })
-    except Exception as e:
-        logger.error(f"Error rendering marketplace: {e}")
-        logger.error(traceback.format_exc())
-        raise e
-
-@app.get("/download/{filename}")
 async def download_file(filename: str):
     # Search in all dirs
     for dtype in ['bundles', 'yearly', 'quarterly', 'monthly']:

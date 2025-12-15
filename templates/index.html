@@ -187,6 +187,22 @@
             <p>Access our 5 proprietary datasets. Segmented by year, quarter, and month for optimal analysis.</p>
         </div>
 
+        <!-- System Status Banner -->
+        <div
+            style="background: #ECFDF5; border: 1px solid #10B981; border-radius: 8px; padding: 1rem; margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div
+                    style="background: #10B981; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 700; font-size: 0.875rem;">
+                    LIVE</div>
+                <div style="color: #065F46; font-weight: 500;">System Updated: {{ system_status.last_update }}</div>
+            </div>
+            <div style="color: #065F46; font-weight: 600;">
+                New Data Added: <span
+                    style="background: white; padding: 0.125rem 0.5rem; border-radius: 4px; border: 1px solid #10B981;">+{{
+                    system_status.data_added }}</span>
+            </div>
+        </div>
+
         {% for v_name, products in verticals.items() %}
         {% if products %}
         <div class="vertical-section">
