@@ -38,7 +38,7 @@ const AiAirportBoard = ({ data }) => {
             </div>
 
             <div className="mt-6 text-xs text-slate-500 relative z-20">
-                * DELAY DETECTED: GPT-5 (Benchmark Inflation > 40%)
+                * DELAY DETECTED: GPT-5 (Benchmark Inflation &gt; 40%)
             </div>
         </div>
     );
