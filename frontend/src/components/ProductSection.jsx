@@ -171,7 +171,7 @@ const ProductSection = ({ vertical, id }) => {
                         <div className="text-center max-w-md w-full p-6">
                             <p className="mb-4 font-bold text-slate-700 text-lg">System Initializing...</p>
 
-                            {status ? (
+                            {status && status.logs ? (
                                 <div className="bg-slate-900 rounded-lg p-4 text-left font-mono text-xs text-emerald-400 shadow-inner h-48 overflow-y-auto flex flex-col-reverse">
                                     {status.logs.map((log, i) => (
                                         <div key={i} className="mb-1 border-b border-slate-800/50 pb-1 last:border-0">
