@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Zap, Shield, Globe, Lock, Info } from 'lucide-react';
+import { Activity, Zap, Shield, Globe, Lock, Info, Download } from 'lucide-react';
 import FintechThermograph from './visualizations/FintechThermograph';
 import AiAirportBoard from './visualizations/AiAirportBoard';
 import EsgPressureChamber from './visualizations/EsgPressureChamber';
@@ -25,8 +25,8 @@ const ProductSection = ({ vertical, id }) => {
     }, [vertical]);
 
     if (loading) return (
-        <div className="h-[600px] flex items-center justify-center border-b border-slate-800">
-            <div className="text-slate-500 animate-pulse">Loading {vertical} Intelligence...</div>
+        <div className="h-[600px] flex items-center justify-center border-b border-slate-200">
+            <div className="text-slate-400 animate-pulse font-medium">Loading {vertical} Intelligence...</div>
         </div>
     );
 
@@ -38,7 +38,7 @@ const ProductSection = ({ vertical, id }) => {
     const config = {
         fintech: {
             title: "Fintech Growth Intelligence",
-            icon: <Activity className="text-blue-400" size={32} />,
+            icon: <Activity className="text-blue-600" size={32} />,
             color: "blue",
             sources: [
                 { name: "App Store Metrics", metric: "Download Velocity", value: latest.download_velocity, change: "+12%" },
@@ -62,7 +62,7 @@ const ProductSection = ({ vertical, id }) => {
         },
         ai_talent: {
             title: "AI Talent & Capital Prediction",
-            icon: <Zap className="text-indigo-400" size={32} />,
+            icon: <Zap className="text-indigo-600" size={32} />,
             color: "indigo",
             sources: [
                 { name: "GitHub Activity", metric: "Star Velocity", value: latest.github_stars_7d, change: "+26" },
@@ -86,7 +86,7 @@ const ProductSection = ({ vertical, id }) => {
         },
         esg: {
             title: "ESG Impact & Greenwashing Detector",
-            icon: <Shield className="text-emerald-400" size={32} />,
+            icon: <Shield className="text-emerald-600" size={32} />,
             color: "emerald",
             sources: [
                 { name: "Marketing Claims", metric: "Claim Count", value: latest.esg_claims, change: "High" },
@@ -110,7 +110,7 @@ const ProductSection = ({ vertical, id }) => {
         },
         regulatory: {
             title: "Regulatory Compliance Prediction",
-            icon: <Lock className="text-red-400" size={32} />,
+            icon: <Lock className="text-red-600" size={32} />,
             color: "red",
             sources: [
                 { name: "Enforcement Logs", metric: "Probability", value: latest.enforcement_probability, change: "High" },
@@ -134,7 +134,7 @@ const ProductSection = ({ vertical, id }) => {
         },
         supply_chain: {
             title: "Supply Chain Resilience Intelligence",
-            icon: <Globe className="text-amber-400" size={32} />,
+            icon: <Globe className="text-amber-600" size={32} />,
             color: "amber",
             sources: [
                 { name: "Disruption Risk", metric: "Risk Score", value: latest.disruption_risk, change: "Medium" },
@@ -159,37 +159,46 @@ const ProductSection = ({ vertical, id }) => {
     }[vertical] || config.fintech;
 
     return (
-        <section id={id} className="py-20 border-b border-slate-800 last:border-0">
+        <section id={id} className="py-20 border-b border-slate-200 last:border-0 bg-white">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-12">
-                <div className={`p-4 bg-${config.color}-500/10 rounded-2xl border border-${config.color}-500/20 shadow-[0_0_30px_rgba(0,0,0,0.3)]`}>
-                    {config.icon}
+            <div className="flex justify-between items-start mb-12">
+                <div className="flex items-center gap-4">
+                    <div className={`p-4 bg-${config.color}-50 rounded-2xl border border-${config.color}-100 shadow-sm`}>
+                        {config.icon}
+                    </div>
+                    <div>
+                        <h2 className="text-4xl font-bold text-slate-900 mb-2">{config.title}</h2>
+                        <p className="text-slate-500 text-lg">Data Alchemy Pipeline: Raw Sources → Profitable Insights</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 className="text-4xl font-bold text-white mb-2">{config.title}</h2>
-                    <p className="text-slate-400 text-lg">Data Alchemy Pipeline: Raw Sources → Profitable Insights</p>
-                </div>
+                <a
+                    href={`/api/download/${vertical}`}
+                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
+                >
+                    <Download size={18} />
+                    Download CSV
+                </a>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                 {/* LEFT COLUMN: Sources & Algo (4 cols) */}
                 <div className="xl:col-span-4 space-y-8">
                     {/* Data Sources */}
-                    <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span className="bg-blue-500 w-1.5 h-5 rounded-full"></span>
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <span className="bg-blue-600 w-1.5 h-5 rounded-full"></span>
                             1. Raw Inputs
                         </h3>
                         <div className="space-y-4">
                             {config.sources.map((s, i) => (
-                                <div key={i} className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                                <div key={i} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center">
                                     <div>
-                                        <div className="text-slate-400 text-xs mb-0.5">{s.name}</div>
-                                        <div className="text-white font-bold">{s.value}</div>
+                                        <div className="text-slate-500 text-xs mb-0.5">{s.name}</div>
+                                        <div className="text-slate-900 font-bold">{s.value}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">{s.metric}</div>
-                                        <div className="text-emerald-400 text-xs font-mono">{s.change}</div>
+                                        <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">{s.metric}</div>
+                                        <div className="text-emerald-600 text-xs font-mono font-bold">{s.change}</div>
                                     </div>
                                 </div>
                             ))}
@@ -197,19 +206,19 @@ const ProductSection = ({ vertical, id }) => {
                     </div>
 
                     {/* Algo Formula */}
-                    <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <span className="bg-purple-500 w-1.5 h-5 rounded-full"></span>
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <span className="bg-purple-600 w-1.5 h-5 rounded-full"></span>
                             2. Processing
                         </h3>
-                        <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                            <h4 className="text-sm font-bold text-white mb-2">{config.algo.name}</h4>
-                            <code className="block bg-slate-950 p-3 rounded-lg text-blue-300 font-mono text-xs mb-3 border border-slate-800 break-words">
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h4 className="text-sm font-bold text-slate-900 mb-2">{config.algo.name}</h4>
+                            <code className="block bg-white p-3 rounded-lg text-blue-600 font-mono text-xs mb-3 border border-slate-200 break-words">
                                 {config.algo.formula}
                             </code>
                             <div className="flex justify-between items-center">
-                                <span className="text-slate-400 text-sm">Output:</span>
-                                <span className="text-xl font-bold text-white">{config.algo.output}</span>
+                                <span className="text-slate-500 text-sm">Output:</span>
+                                <span className="text-xl font-bold text-slate-900">{config.algo.output}</span>
                             </div>
                         </div>
                     </div>
@@ -217,10 +226,10 @@ const ProductSection = ({ vertical, id }) => {
 
                 {/* MIDDLE COLUMN: Visualization (5 cols) */}
                 <div className="xl:col-span-5 flex flex-col">
-                    <div className="bg-slate-900 rounded-2xl border border-slate-800 p-1 flex-1 flex flex-col">
-                        <div className="bg-slate-950/50 rounded-xl flex-1 flex items-center justify-center p-6 relative overflow-hidden">
+                    <div className="bg-white rounded-2xl border border-slate-200 p-1 flex-1 flex flex-col shadow-sm">
+                        <div className="bg-slate-50 rounded-xl flex-1 flex items-center justify-center p-6 relative overflow-hidden">
                             {/* Background Grid */}
-                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.05)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
 
                             <div className="w-full relative z-10">
                                 {vertical === 'fintech' && <FintechThermograph data={latest} />}
@@ -230,10 +239,10 @@ const ProductSection = ({ vertical, id }) => {
                                     <div className="h-[300px] w-full">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <LineChart data={history}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                                                 <XAxis dataKey="date" hide />
                                                 <YAxis hide domain={[0, 100]} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f8fafc' }} />
+                                                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }} />
                                                 <Line
                                                     type="monotone"
                                                     dataKey={vertical === 'regulatory' ? 'enforcement_probability_pct' : 'disruption_probability'}
@@ -253,33 +262,33 @@ const ProductSection = ({ vertical, id }) => {
                 {/* RIGHT COLUMN: Insights & Profit (3 cols) */}
                 <div className="xl:col-span-3 space-y-8">
                     {/* Actionable Insight */}
-                    <div className="bg-gradient-to-br from-blue-900/20 to-slate-900 border border-blue-500/30 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-6 shadow-sm">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
                             <span className="bg-emerald-500 w-1.5 h-5 rounded-full"></span>
                             3. Alpha Signal
                         </h3>
-                        <div className="bg-slate-900/80 p-4 rounded-xl border border-blue-500/20 mb-4">
+                        <div className="bg-white p-4 rounded-xl border border-blue-100 mb-4 shadow-sm">
                             <div className="flex justify-between items-start mb-2">
-                                <span className="bg-blue-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">High Confidence</span>
+                                <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">High Confidence</span>
                                 <span className="text-slate-400 text-xs">{latest.date}</span>
                             </div>
-                            <p className="text-white font-medium leading-relaxed text-sm">
+                            <p className="text-slate-900 font-medium leading-relaxed text-sm">
                                 "{latest.premium_insight}"
                             </p>
                         </div>
                     </div>
 
                     {/* Explanation */}
-                    <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6">
-                        <h5 className="text-white font-bold mb-2 flex items-center gap-2 text-sm">
-                            <Info size={14} className="text-blue-400" /> Why This Creates Profit
+                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                        <h5 className="text-slate-900 font-bold mb-2 flex items-center gap-2 text-sm">
+                            <Info size={14} className="text-blue-600" /> Why This Creates Profit
                         </h5>
-                        <p className="text-slate-400 text-xs leading-relaxed mb-4">
+                        <p className="text-slate-500 text-xs leading-relaxed mb-4">
                             {config.explanation.profit}
                         </p>
-                        <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                            <h5 className="text-slate-500 font-bold text-[10px] uppercase mb-1">Data Sources</h5>
-                            <ul className="list-disc list-inside text-slate-400 text-[10px] space-y-0.5">
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <h5 className="text-slate-400 font-bold text-[10px] uppercase mb-1">Data Sources</h5>
+                            <ul className="list-disc list-inside text-slate-500 text-[10px] space-y-0.5">
                                 {config.explanation.data.map((d, i) => (
                                     <li key={i}>{d}</li>
                                 ))}

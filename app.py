@@ -171,6 +171,38 @@ async def get_preview(vertical: str):
         logger.error(f"Error fetching preview: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
+@app.get("/api/download/{vertical}")
+async def download_dataset(vertical: str):
+    """Download the full CSV dataset for a vertical"""
+    try:
+        data_dir = os.getenv("DATA_DIR", "data")
+        files = {
+            "fintech": "fintech_growth_digest.csv",
+            "ai_talent": "ai_talent_heatmap.csv",
+            "esg": "esg_sentiment_tracker.csv",
+            "regulatory": "regulatory_risk_index.csv",
+            "supply_chain": "supply_chain_risk.csv"
+        }
+        
+        if vertical not in files:
+            raise HTTPException(404, "Vertical not found")
+            
+        fpath = os.path.join(data_dir, files[vertical])
+        if not os.path.exists(fpath):
+            fpath = os.path.join("data", files[vertical])
+            if not os.path.exists(fpath):
+                 raise HTTPException(404, "Dataset not found")
+        
+        return FileResponse(
+            path=fpath, 
+            filename=files[vertical], 
+            media_type='text/csv', 
+            headers={"Content-Disposition": f"attachment; filename={files[vertical]}"}
+        )
+    except Exception as e:
+        logger.error(f"Error downloading dataset: {e}")
+        raise HTTPException(500, str(e))
+
 @app.get("/")
 async def read_root():
     """Serve React App"""

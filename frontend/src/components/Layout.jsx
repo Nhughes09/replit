@@ -12,14 +12,14 @@ const Layout = ({ children }) => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex" id="top">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex" id="top">
             {/* Sidebar */}
-            <aside className="w-64 bg-slate-900 border-r border-slate-800 fixed h-full z-50 hidden md:block">
-                <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-                    <div className="bg-blue-600 p-2 rounded-lg">
+            <aside className="w-64 bg-white border-r border-slate-200 fixed h-full z-50 hidden md:block shadow-sm">
+                <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+                    <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-600/20">
                         <Database size={24} className="text-white" />
                     </div>
-                    <span className="font-bold text-xl tracking-tight">HHeuristics</span>
+                    <span className="font-bold text-xl tracking-tight text-slate-900">HHeuristics</span>
                 </div>
 
                 <nav className="p-4 space-y-2">
@@ -27,18 +27,18 @@ const Layout = ({ children }) => {
                         <a
                             key={item.name}
                             href={item.path}
-                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-all font-medium"
                         >
                             {item.icon}
-                            <span className="font-medium">{item.name}</span>
+                            <span>{item.name}</span>
                         </a>
                     ))}
                 </nav>
 
-                <div className="absolute bottom-0 w-full p-6 border-t border-slate-800">
+                <div className="absolute bottom-0 w-full p-6 border-t border-slate-100">
                     <div className="flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-xs font-mono text-emerald-500">SYSTEM ONLINE</span>
+                        <span className="text-xs font-mono text-emerald-600 font-bold">SYSTEM ONLINE</span>
                     </div>
                 </div>
             </aside>
