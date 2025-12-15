@@ -43,7 +43,10 @@ const ProductSection = ({ vertical, id }) => {
             sources: [
                 { name: "App Store Metrics", metric: "Download Velocity", value: latest.download_velocity, change: "+12%" },
                 { name: "User Sentiment", metric: "Review Score", value: latest.review_sentiment, change: "+0.2" },
-                { name: "Hiring Signals", metric: "Hiring Spike", value: latest.hiring_spike, change: "Active" }
+                { name: "Hiring Signals", metric: "Hiring Spike", value: latest.hiring_spike, change: "Active" },
+                { name: "Adoption Speed", metric: "Velocity Score", value: latest.adoption_velocity, change: "High" },
+                { name: "Churn Risk", metric: "Risk Index", value: latest.churn_risk, change: "Low" },
+                { name: "Cust. Acquisition", metric: "CAC Proxy", value: latest.cac_proxy, change: "Stable" }
             ],
             algo: {
                 name: "Funding Probability Score",
@@ -67,7 +70,10 @@ const ProductSection = ({ vertical, id }) => {
             sources: [
                 { name: "GitHub Activity", metric: "Star Velocity", value: latest.github_stars_7d, change: "+26" },
                 { name: "Research Output", metric: "ArXiv Papers", value: latest.arxiv_papers, change: "5" },
-                { name: "Talent Flow", metric: "Talent Score", value: latest.talent_score, change: "High" }
+                { name: "Talent Flow", metric: "Talent Score", value: latest.talent_score, change: "High" },
+                { name: "Citations", metric: "Impact Score", value: latest.citations, change: "+150" },
+                { name: "Patents", metric: "Filed Count", value: latest.patents_filed, change: "2" },
+                { name: "Investor Interest", metric: "Engagement", value: latest.investor_engagement, change: "High" }
             ],
             algo: {
                 name: "Technical Momentum Index",
@@ -91,7 +97,10 @@ const ProductSection = ({ vertical, id }) => {
             sources: [
                 { name: "Marketing Claims", metric: "Claim Count", value: latest.esg_claims, change: "High" },
                 { name: "Audit Logs", metric: "Verified Actions", value: latest.verifiable_actions, change: "Low" },
-                { name: "Discrepancy", metric: "Greenwashing Index", value: latest.greenwashing_index, change: "Critical" }
+                { name: "Discrepancy", metric: "Greenwashing Index", value: latest.greenwashing_index, change: "Critical" },
+                { name: "Regulatory Risk", metric: "Risk Level", value: latest.regulatory_risk, change: "Elevated" },
+                { name: "Stakeholder Trust", metric: "Trust Score", value: latest.stakeholder_score, change: "Falling" },
+                { name: "Impact Verified", metric: "Verification %", value: latest.impact_verified, change: "23%" }
             ],
             algo: {
                 name: "Integrity Gap Analysis",
@@ -115,7 +124,10 @@ const ProductSection = ({ vertical, id }) => {
             sources: [
                 { name: "Enforcement Logs", metric: "Probability", value: latest.enforcement_probability, change: "High" },
                 { name: "Compliance Hiring", metric: "Gap Score", value: latest.compliance_gap, change: "Large" },
-                { name: "Whistleblower", metric: "Risk Level", value: latest.whistleblower_risk, change: "Elevated" }
+                { name: "Whistleblower", metric: "Risk Level", value: latest.whistleblower_risk, change: "Elevated" },
+                { name: "Remediation", metric: "Est. Cost", value: latest.remediation_cost, change: "High" },
+                { name: "Reg. Foresight", metric: "Readiness", value: latest.regulatory_foresight, change: "Low" },
+                { name: "Fine Impact", metric: "Est. Impact", value: latest.fines_estimate, change: "Critical" }
             ],
             algo: {
                 name: "Enforcement Risk Heatmap",
@@ -139,7 +151,10 @@ const ProductSection = ({ vertical, id }) => {
             sources: [
                 { name: "Disruption Risk", metric: "Risk Score", value: latest.disruption_risk, change: "Medium" },
                 { name: "Recovery Time", metric: "Days to Recover", value: latest.recovery_days, change: "19 Days" },
-                { name: "Inflation", metric: "Cost Impact", value: latest.cost_inflation, change: "2.5%" }
+                { name: "Inflation", metric: "Cost Impact", value: latest.cost_inflation, change: "2.5%" },
+                { name: "Single Point Fail", metric: "Critical Node", value: latest.single_point_failure, change: "Yes" },
+                { name: "Resilience", metric: "Score", value: latest.resilience_score, change: "Low" },
+                { name: "Impact Timeline", metric: "Days to Impact", value: latest.days_to_impact, change: "14 Days" }
             ],
             algo: {
                 name: "Resilience Gauge",
@@ -202,6 +217,9 @@ const ProductSection = ({ vertical, id }) => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+                            <span className="text-xs text-slate-400 font-medium">+ 12 other proprietary signals processed</span>
                         </div>
                     </div>
 
