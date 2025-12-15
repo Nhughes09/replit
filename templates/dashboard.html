@@ -73,21 +73,28 @@
         </header>
 
         <main>
-            <strong>Records:</strong> {{ dataset.records }} |
-            <strong>Last Updated:</strong> {{ dataset.updated }}
-    </div>
-    <a href="{{ dataset.download_url }}" class="btn-download">⬇ Download Latest CSV</a>
-    </div>
-    {% endfor %}
-    {% else %}
-    <p>No datasets are currently available. The system is likely fetching the initial data. Please refresh in a
-        few seconds.</p>
-    {% endif %}
-    </main>
+            <h2>Available Datasets</h2>
+            {% if datasets %}
+            {% for dataset in datasets %}
+            <div class="dataset-card">
+                <h3>{{ dataset.name }}</h3>
+                <p>This dataset tracks news sentiment for major AI and technology companies, updated daily.</p>
+                <div class="meta">
+                    <strong>Records:</strong> {{ dataset.records }} |
+                    <strong>Last Updated:</strong> {{ dataset.updated }}
+                </div>
+                <a href="{{ dataset.download_url }}" class="btn-download">⬇ Download Latest CSV</a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>No datasets are currently available. The system is likely fetching the initial data. Please refresh in a
+                few seconds.</p>
+            {% endif %}
+        </main>
 
-    <footer style="margin-top: 40px; color: #6c757d; font-size: 0.8em; text-align: center;">
-        <p>© 2025 HHeuristics. Data updates daily at 12:00 UTC. Protected by basic authentication.</p>
-    </footer>
+        <footer style="margin-top: 40px; color: #6c757d; font-size: 0.8em; text-align: center;">
+            <p>© 2025 HHeuristics. Data updates daily at 12:00 UTC. Protected by basic authentication.</p>
+        </footer>
     </div>
 </body>
 
