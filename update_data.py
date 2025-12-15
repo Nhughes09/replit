@@ -44,7 +44,12 @@ class PremiumDataEngine:
         Product 1: Fintech Growth Intelligence
         Columns: company, date, download_velocity, review_sentiment, hiring_spike, 
                  feature_lead_score, adoption_velocity, churn_risk, funding_signal, 
-                 cac_proxy, premium_insight, alpha_window_days, smart_money_score
+                 cac_proxy, premium_insight, alpha_window_days, smart_money_score,
+                 # NEW ML FEATURES
+                 download_acceleration, review_sentiment_trend, engineer_hiring_spike,
+                 executive_departure_score, recruiting_intensity, burn_rate_proxy,
+                 competitor_funding_gap, investor_engagement_score, api_traffic_growth,
+                 feature_release_velocity, tech_stack_modernization
         """
         companies = {
             "Revolut": "com.revolut.revolut",
@@ -61,40 +66,32 @@ class PremiumDataEngine:
                 self.fintech_state[name] = {
                     "signal_phase": 0, # 0 = Quiet, >0 = Active Signal
                     "base_velocity": 75,
-                    "sentiment_trend": 4.2
+                    "sentiment_trend": 4.2,
+                    "prev_downloads": 75
                 }
             
             state = self.fintech_state[name]
             
             # 1. Determine Signal State (The "Smart Money" Logic)
-            # If active, decrement. If quiet, small chance to start.
             hiring_spike = "No"
             if state["signal_phase"] > 0:
                 state["signal_phase"] -= 1
-                # Mid-signal spike
                 if state["signal_phase"] == 12: # Start of signal
                     hiring_spike = "Yes"
             else:
-                # 2% chance to start a new 14-day signal
                 if random.random() < 0.02:
                     state["signal_phase"] = 14
                     hiring_spike = "Yes"
 
-            # 2. Calculate Metrics based on State
-            # Extreme Exponential Logic: Growth compounds daily
+            # 2. Calculate Metrics
             growth_factor = 1.02 
             days_passed = (date_obj - datetime(2025, 1, 1)).days
             exponential_boost = state["base_velocity"] * (growth_factor ** max(0, days_passed/30))
             
-            # If signal is active, boost velocity and score
             if state["signal_phase"] > 0:
-                # Velocity ramps up as signal matures (lagging indicator)
-                signal_maturity = (14 - state["signal_phase"]) / 14 # 0 to 1
+                signal_maturity = (14 - state["signal_phase"]) / 14
                 velocity_boost = 50 * signal_maturity
-                
-                # Smart Money Score is high IMMEDIATELY (leading indicator)
                 smart_money_score = int(85 + (10 * (1 - signal_maturity)) + random.uniform(-2, 2))
-                
                 insight = f"Accumulation detected: {state['signal_phase']} days remaining in Alpha Window"
             else:
                 velocity_boost = 0
@@ -103,17 +100,33 @@ class PremiumDataEngine:
 
             download_velocity = int(np.random.normal(exponential_boost + velocity_boost, 10))
             
+            # Calculate Acceleration
+            download_acceleration = download_velocity - state["prev_downloads"]
+            state["prev_downloads"] = download_velocity
+            
             # Sentiment drift
             state["sentiment_trend"] += random.uniform(-0.05, 0.05)
             state["sentiment_trend"] = max(3.5, min(4.9, state["sentiment_trend"]))
             review_sentiment = round(state["sentiment_trend"], 1)
+            review_sentiment_trend = random.uniform(-0.1, 0.1) # Slope
 
             feature_lead = random.randint(60, 95)
             adoption_velocity = int((download_velocity * 0.6) + (feature_lead * 0.4))
             churn_risk = max(1, min(10, int((5.0 - review_sentiment) * 10)))
             funding_signal = "Strong" if hiring_spike == "Yes" else "Moderate" if adoption_velocity > 100 else "Weak"
-            cac_proxy = f"${random.randint(35, 85)}"
+            cac_proxy = random.randint(35, 85) # Changed to int for ML
             alpha_window_days = state["signal_phase"] if state["signal_phase"] > 0 else 0
+
+            # NEW ML FEATURES
+            engineer_hiring_spike = 1 if hiring_spike == "Yes" else 0
+            executive_departure_score = random.randint(0, 100)
+            recruiting_intensity = random.uniform(0.5, 5.0)
+            burn_rate_proxy = random.uniform(1.0, 10.0) # $M/month
+            competitor_funding_gap = random.randint(0, 365)
+            investor_engagement_score = random.randint(0, 100)
+            api_traffic_growth = random.uniform(-10, 50)
+            feature_release_velocity = random.randint(1, 10)
+            tech_stack_modernization = random.choice([0, 1])
 
             data.append({
                 "company": name,
@@ -128,7 +141,19 @@ class PremiumDataEngine:
                 "cac_proxy": cac_proxy,
                 "premium_insight": insight,
                 "alpha_window_days": alpha_window_days,
-                "smart_money_score": smart_money_score
+                "smart_money_score": smart_money_score,
+                # ML Features
+                "download_acceleration": download_acceleration,
+                "review_sentiment_trend": review_sentiment_trend,
+                "engineer_hiring_spike": engineer_hiring_spike,
+                "executive_departure_score": executive_departure_score,
+                "recruiting_intensity": recruiting_intensity,
+                "burn_rate_proxy": burn_rate_proxy,
+                "competitor_funding_gap": competitor_funding_gap,
+                "investor_engagement_score": investor_engagement_score,
+                "api_traffic_growth": api_traffic_growth,
+                "feature_release_velocity": feature_release_velocity,
+                "tech_stack_modernization": tech_stack_modernization
             })
         return data
 
@@ -138,7 +163,9 @@ class PremiumDataEngine:
         Product 2: AI Talent & Capital Prediction
         Columns: company, date, github_stars_7d, arxiv_papers, citations, patents_filed, 
                  investor_engagement, funding_probability, technical_momentum, talent_score, premium_insight,
-                 innovation_delay_days, benchmark_inflation_pct, flight_status
+                 innovation_delay_days, benchmark_inflation_pct, flight_status,
+                 # ML FEATURES
+                 performance_leap_magnitude, commercialization_timeline
         """
         companies = ["OpenAI", "Anthropic", "StabilityAI", "Cohere", "Hugging Face"]
         
@@ -174,6 +201,10 @@ class PremiumDataEngine:
             else:
                 insight = "Steady technical output, organic growth phase"
 
+            # ML Features
+            performance_leap_magnitude = random.uniform(10.0, 50.0) # % improvement
+            commercialization_timeline = random.randint(3, 18) # months
+
             data.append({
                 "company": co,
                 "date": date_obj.strftime("%Y-%m-%d"),
@@ -188,7 +219,10 @@ class PremiumDataEngine:
                 "premium_insight": insight,
                 "innovation_delay_days": innovation_delay_days,
                 "benchmark_inflation_pct": benchmark_inflation_pct,
-                "flight_status": flight_status
+                "flight_status": flight_status,
+                # ML Features
+                "performance_leap_magnitude": performance_leap_magnitude,
+                "commercialization_timeline": commercialization_timeline
             })
         return data
 
@@ -198,7 +232,10 @@ class PremiumDataEngine:
         Product 3: ESG Impact & Greenwashing Detector
         Columns: company, date, esg_claims, verifiable_actions, greenwashing_index, 
                  regulatory_risk, stakeholder_score, impact_verified, premium_insight,
-                 claims_psi, reality_psi, greenwashing_gap_pct
+                 claims_psi, reality_psi, greenwashing_gap_pct,
+                 # ML FEATURES
+                 audit_gap_size, supplier_esg_score, employee_whistleblower_count,
+                 carbon_credit_validity_score
         """
         companies = ["Tesla", "ExxonMobil", "Unilever", "BlackRock", "Patagonia"]
         
@@ -225,6 +262,12 @@ class PremiumDataEngine:
             else:
                 insight = "Strong on operations but weak on supply chain transparency"
 
+            # ML Features
+            audit_gap_size = claims - verified
+            supplier_esg_score = random.randint(0, 100)
+            employee_whistleblower_count = random.randint(0, 5)
+            carbon_credit_validity_score = random.randint(0, 100)
+
             data.append({
                 "company": co,
                 "date": date_obj.strftime("%Y-%m-%d"),
@@ -237,7 +280,12 @@ class PremiumDataEngine:
                 "premium_insight": insight,
                 "claims_psi": claims_psi,
                 "reality_psi": reality_psi,
-                "greenwashing_gap_pct": greenwashing_gap_pct
+                "greenwashing_gap_pct": greenwashing_gap_pct,
+                # ML Features
+                "audit_gap_size": audit_gap_size,
+                "supplier_esg_score": supplier_esg_score,
+                "employee_whistleblower_count": employee_whistleblower_count,
+                "carbon_credit_validity_score": carbon_credit_validity_score
             })
         return data
 
@@ -247,7 +295,9 @@ class PremiumDataEngine:
         Product 4: Regulatory Compliance Prediction
         Columns: company, date, enforcement_probability, compliance_gap, fines_estimate, 
                  remediation_cost, whistleblower_risk, regulatory_foresight, premium_insight,
-                 enforcement_probability_pct, fine_impact_usd
+                 enforcement_probability_pct, fine_impact_usd,
+                 # ML FEATURES
+                 action_timeline_days
         """
         companies = ["Meta", "Coinbase", "Amazon", "Pfizer", "Goldman Sachs"]
         
@@ -271,6 +321,9 @@ class PremiumDataEngine:
             else:
                 insight = "Moderate risk - improving compliance but scrutiny remains"
 
+            # ML Features
+            action_timeline_days = random.randint(30, 180)
+
             data.append({
                 "company": co,
                 "date": date_obj.strftime("%Y-%m-%d"),
@@ -282,7 +335,9 @@ class PremiumDataEngine:
                 "regulatory_foresight": foresight,
                 "premium_insight": insight,
                 "enforcement_probability_pct": enforcement_probability_pct,
-                "fine_impact_usd": fine_impact_usd
+                "fine_impact_usd": fine_impact_usd,
+                # ML Features
+                "action_timeline_days": action_timeline_days
             })
         return data
 
@@ -292,7 +347,9 @@ class PremiumDataEngine:
         Product 5: Supply Chain Resilience
         Columns: company, date, disruption_risk, recovery_days, single_point_failure, 
                  cost_inflation, resilience_score, premium_insight,
-                 disruption_probability, days_to_impact
+                 disruption_probability, days_to_impact,
+                 # ML FEATURES
+                 impact_revenue_pct
         """
         companies = ["Apple", "Ford", "Nike", "Toyota", "Samsung"]
         
@@ -315,6 +372,9 @@ class PremiumDataEngine:
             else:
                 insight = "Stable supply chain with moderate inflationary pressure"
 
+            # ML Features
+            impact_revenue_pct = random.uniform(0.5, 5.0)
+
             data.append({
                 "company": co,
                 "date": date_obj.strftime("%Y-%m-%d"),
@@ -325,7 +385,9 @@ class PremiumDataEngine:
                 "resilience_score": resilience,
                 "premium_insight": insight,
                 "disruption_probability": disruption_probability,
-                "days_to_impact": days_to_impact
+                "days_to_impact": days_to_impact,
+                # ML Features
+                "impact_revenue_pct": impact_revenue_pct
             })
         return data
 

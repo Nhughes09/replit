@@ -31,6 +31,22 @@ app.add_middleware(
 # Initialize Managers
 data_manager = DataProductManager()
 
+# Initialize ML Engine
+from ml_engine.pnl_tracker import PnLTracker
+from ml_engine.predictors import (
+    FintechPredictor, AiTalentPredictor, EsgPredictor, 
+    RegulatoryPredictor, SupplyChainPredictor
+)
+
+pnl_tracker = PnLTracker()
+predictors = {
+    "fintech": FintechPredictor("fintech", pnl_tracker),
+    "ai_talent": AiTalentPredictor("ai_talent", pnl_tracker),
+    "esg": EsgPredictor("esg", pnl_tracker),
+    "regulatory": RegulatoryPredictor("regulatory", pnl_tracker),
+    "supply_chain": SupplyChainPredictor("supply_chain", pnl_tracker)
+}
+
 # Mount Static Files (React Build)
 # We will mount 'assets' to /assets, and serve index.html for root
 if os.path.exists("frontend/dist/assets"):
@@ -265,6 +281,52 @@ async def download_dataset(filename: str):
     except Exception as e:
         logger.error(f"Error downloading file: {e}")
         raise HTTPException(500, str(e))
+
+@app.get("/api/predict/{vertical}")
+async def get_prediction(vertical: str):
+    """Get live ML prediction for a vertical"""
+    try:
+        if vertical not in predictors:
+            raise HTTPException(404, "Predictor not found")
+            
+        # Get latest data for this vertical to run inference on
+        # We reuse the logic from get_preview to fetch the latest row
+        data_dir = os.getenv("DATA_DIR", "data")
+        files = {
+            "fintech": "fintech_growth_digest.csv",
+            "ai_talent": "ai_talent_heatmap.csv",
+            "esg": "esg_sentiment_tracker.csv",
+            "regulatory": "regulatory_risk_index.csv",
+            "supply_chain": "supply_chain_risk.csv"
+        }
+        
+        fpath = os.path.join(data_dir, files[vertical])
+        if not os.path.exists(fpath):
+             # Fallback
+             fpath = os.path.join("data", files[vertical])
+        
+        import pandas as pd
+        df = pd.read_csv(fpath)
+        latest_data = df.iloc[-1].to_dict()
+        
+        # Run Prediction
+        predictor = predictors[vertical]
+        result = predictor.predict(latest_data)
+        
+        return JSONResponse(result)
+    except Exception as e:
+        logger.error(f"Prediction failed: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/api/pnl")
+async def get_pnl_metrics():
+    """Get global P&L tracking metrics"""
+    try:
+        metrics = pnl_tracker.get_performance_metrics()
+        return JSONResponse(metrics)
+    except Exception as e:
+        logger.error(f"PnL fetch failed: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/")
 async def read_root():

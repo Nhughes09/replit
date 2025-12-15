@@ -11,7 +11,7 @@ const Dashboard = () => {
                     v2.0 LIVE • PREMIUM DATA ENGINE ACTIVE
                 </div>
                 <h1 className="text-6xl md:text-8xl font-bold text-slate-900 mb-8 tracking-tight">
-                    Data <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">Alchemy</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">HHeuristics</span>
                 </h1>
                 <p className="text-xl text-slate-600 max-w-2xl leading-relaxed mb-12">
                     We don't just sell data. We transform raw signals into
