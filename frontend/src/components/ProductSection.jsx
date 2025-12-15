@@ -14,9 +14,10 @@ const ProductSection = ({ vertical, id }) => {
 
     useEffect(() => {
         setLoading(true);
+        const apiUrl = import.meta.env.VITE_API_URL || '';
         Promise.all([
-            fetch(`/api/preview/${vertical}`).then(res => res.json()),
-            fetch(`/api/files/${vertical}`).then(res => res.json())
+            fetch(`${apiUrl}/api/preview/${vertical}`).then(res => res.json()),
+            fetch(`${apiUrl}/api/files/${vertical}`).then(res => res.json())
         ])
             .then(([previewData, filesData]) => {
                 setData(previewData);
@@ -210,7 +211,7 @@ const ProductSection = ({ vertical, id }) => {
                                 {files.map((file, i) => (
                                     <a
                                         key={i}
-                                        href={`/api/download/${file.filename}`}
+                                        href={`${import.meta.env.VITE_API_URL || ''}/api/download/${file.filename}`}
                                         className="block p-3 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-0"
                                     >
                                         <div className="flex justify-between items-center mb-1">
