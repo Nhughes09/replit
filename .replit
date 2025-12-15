@@ -1,0 +1,2 @@
+run = "bash replit_start.sh"
+modules = ["python-3.10", "nodejs-18"]
