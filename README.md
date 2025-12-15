@@ -51,17 +51,20 @@ This app is designed to be deployed on [Render.com](https://render.com).
     - `FINNHUB_KEY`: Your Finnhub API Key.
     - `PYTHON_VERSION`: `3.11.0` (optional, handled by runtime.txt).
 
-### 2. Background Job (Cron) Setup
-The free tier does not support persistent background processes, so we use a **Cron Job** to update data daily.
+### 2. GitHub Actions (Free Cron) Setup
+To keep the daily updates **free**, we use GitHub Actions instead of Render's paid Cron Jobs.
 
-1. On your Render Dashboard, click **New +** and select **Cron Job**.
-2. Connect the same repository.
-3. **Name**: `daily-data-update`
-4. **Region**: Same as your Web Service.
-5. **Schedule**: `0 12 * * *` (Runs daily at 12:00 UTC).
-6. **Command**: `python update_data.py`
-7. **Environment Variables**:
-    - `FINNHUB_KEY`: Your Finnhub API Key.
+1.  Go to your GitHub Repository -> **Settings** -> **Secrets and variables** -> **Actions**.
+2.  Click **New repository secret**.
+3.  **Name**: `FINNHUB_KEY`
+4.  **Value**: Your Finnhub API Key.
+5.  Click **Add secret**.
+
+The workflow is already set up in `.github/workflows/daily_update.yml`. It will:
+- Run daily at 12:00 UTC.
+- Fetch new data.
+- Commit the updated CSV back to the repository.
+- Render will detect the commit and automatically redeploy the website with the new data.
 
 ### 3. Live URL
 The app will be accessible at: `https://replit-lml7.onrender.com`
