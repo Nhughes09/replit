@@ -22,13 +22,22 @@ const ProductSection = ({ vertical, id }) => {
             fetch(`${apiUrl}/api/predict/${vertical}`).then(res => res.json())
         ])
             .then(([previewData, filesData, predictionData]) => {
+                console.log("Preview Data:", previewData);
+                console.log("Files Data:", filesData);
+                console.log("Prediction Data:", predictionData);
+
+                if (previewData.error || predictionData.error || predictionData.detail) {
+                    console.error("API Error:", previewData.error || predictionData.error || predictionData.detail);
+                    // Don't crash, just set loading false and maybe show error
+                }
+
                 setData(previewData);
                 setFiles(filesData.files || []);
                 setPrediction(predictionData);
                 setLoading(false);
             })
             .catch(err => {
-                console.error(err);
+                console.error("Fetch Error:", err);
                 setLoading(false);
             });
     }, [vertical]);
@@ -41,8 +50,6 @@ const ProductSection = ({ vertical, id }) => {
             </div>
         </div>
     );
-
-    if (!data || !prediction) return null;
 
     // Config based on vertical
     const config = {
@@ -77,6 +84,8 @@ const ProductSection = ({ vertical, id }) => {
             desc: "Predicting disruption risks and recovery timelines."
         }
     }[vertical] || config.fintech;
+
+    const isError = !data || data.error || !prediction || prediction.error || prediction.detail || !prediction.predictions;
 
     return (
         <section id={id} className="py-20 border-b border-slate-200 last:border-0 bg-slate-50">
@@ -133,42 +142,54 @@ const ProductSection = ({ vertical, id }) => {
                     </div>
                 </div>
 
-                {/* ML Dashboard Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* LEFT COLUMN: Active Predictions (8 cols) */}
-                    <div className="lg:col-span-8 space-y-8">
-                        <PredictionCard
-                            predictions={prediction.predictions}
-                            confidence={prediction.confidence}
-                            vertical={vertical}
-                        />
-
-                        <FeatureImportance explanation={prediction.explanation} />
-                    </div>
-
-                    {/* RIGHT COLUMN: Model Performance (4 cols) */}
-                    <div className="lg:col-span-4">
-                        <ModelPerformance />
-
-                        {/* Additional Info Card */}
-                        <div className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
-                                Data Sources
-                            </h4>
-                            <ul className="space-y-3">
-                                {Object.keys(prediction.explanation).slice(0, 4).map((key, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                        <span className="capitalize">{key.replace(/_/g, ' ')}</span>
-                                    </li>
-                                ))}
-                                <li className="text-xs text-slate-400 italic pt-2">
-                                    + 28 other signals processed
-                                </li>
-                            </ul>
+                {/* Content Area */}
+                {isError ? (
+                    <div className="h-[400px] flex items-center justify-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                        <div className="text-center">
+                            <p className="mb-2 font-bold text-slate-600">System Initializing...</p>
+                            <p className="text-sm">Waiting for ML Engine to come online.</p>
+                            {prediction && (prediction.error || prediction.detail) && (
+                                <p className="text-xs text-red-400 mt-2 bg-red-50 px-2 py-1 rounded">Error: {prediction.error || prediction.detail}</p>
+                            )}
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* LEFT COLUMN: Active Predictions (8 cols) */}
+                        <div className="lg:col-span-8 space-y-8">
+                            <PredictionCard
+                                predictions={prediction.predictions}
+                                confidence={prediction.confidence}
+                                vertical={vertical}
+                            />
+
+                            <FeatureImportance explanation={prediction.explanation} />
+                        </div>
+
+                        {/* RIGHT COLUMN: Model Performance (4 cols) */}
+                        <div className="lg:col-span-4">
+                            <ModelPerformance />
+
+                            {/* Additional Info Card */}
+                            <div className="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                                    Data Sources
+                                </h4>
+                                <ul className="space-y-3">
+                                    {Object.keys(prediction.explanation).slice(0, 4).map((key, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                            <span className="capitalize">{key.replace(/_/g, ' ')}</span>
+                                        </li>
+                                    ))}
+                                    <li className="text-xs text-slate-400 italic pt-2">
+                                        + 28 other signals processed
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
     );

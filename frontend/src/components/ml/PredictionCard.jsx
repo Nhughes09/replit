@@ -40,8 +40,8 @@ const PredictionCard = ({ predictions, confidence, vertical }) => {
             </div>
 
             <div className="space-y-4">
-                {Object.entries(predictions).map(([key, value], idx) => {
-                    const conf = confidence[key] || 0.85;
+                {predictions && Object.entries(predictions).map(([key, value], idx) => {
+                    const conf = confidence ? (confidence[key] || 0.85) : 0.85;
                     const confPct = (conf * 100).toFixed(1);
 
                     return (
