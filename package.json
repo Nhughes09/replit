@@ -3,6 +3,7 @@
     "private": true,
     "scripts": {
         "build": "echo 'NEW GITHUB WAS USED: Starting Build...' && cd frontend && npm install && npm run build && echo 'Build Complete: frontend/dist created'",
+        "postinstall": "npm run build",
         "deploy": "npm run build && wrangler deploy"
     },
     "devDependencies": {
