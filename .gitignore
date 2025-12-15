@@ -3,3 +3,4 @@ __pycache__/
 .env
 data/*.csv
 frontend/node_modules/
+data/status.json
