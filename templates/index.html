@@ -4,9 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HHeuristics Fintech Intelligence</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>HHeuristics Data Marketplace</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -15,8 +13,6 @@
             --text-primary: #111827;
             --text-secondary: #6B7280;
             --accent-color: #2563EB;
-            --accent-hover: #1D4ED8;
-            --success-color: #10B981;
             --border-color: #E5E7EB;
         }
 
@@ -26,7 +22,6 @@
             color: var(--text-primary);
             margin: 0;
             padding: 0;
-            line-height: 1.5;
         }
 
         .navbar {
@@ -36,15 +31,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
         .brand {
             font-weight: 700;
             font-size: 1.25rem;
-            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 0.5rem;
@@ -61,182 +52,123 @@
         }
 
         .hero {
-            margin-bottom: 3rem;
+            text-align: center;
+            margin-bottom: 4rem;
         }
 
         .hero h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 800;
-            letter-spacing: -0.025em;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
         }
 
         .hero p {
+            font-size: 1.25rem;
             color: var(--text-secondary);
-            font-size: 1.125rem;
             max-width: 600px;
+            margin: 0 auto;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 2rem;
+        .vertical-section {
+            margin-bottom: 4rem;
         }
 
-        .col-span-8 {
-            grid-column: span 8;
-        }
-
-        .col-span-4 {
-            grid-column: span 4;
-        }
-
-        @media (max-width: 1024px) {
-
-            .col-span-8,
-            .col-span-4 {
-                grid-column: span 12;
-            }
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .vertical-title {
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 1.5rem;
-        }
-
-        .card-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .btn {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.875rem;
-            text-decoration: none;
-            transition: all 0.2s;
             gap: 0.5rem;
         }
 
-        .btn-primary {
-            background-color: var(--text-primary);
-            color: white;
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
 
-        .btn-primary:hover {
-            background-color: #000;
-        }
-
-        .btn-outline {
+        .product-card {
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .btn-outline:hover {
-            background: var(--bg-color);
-        }
-
-        /* Table Styles */
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.875rem;
-        }
-
-        th {
-            text-align: left;
-            padding: 0.75rem 1rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            border-bottom: 1px solid var(--border-color);
-            background: #F9FAFB;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.125rem 0.625rem;
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
         }
 
-        .badge-Positive {
-            background: #DCFCE7;
-            color: #166534;
+        .badge-bundle {
+            background: #DBEAFE;
+            color: #1E40AF;
         }
 
-        .badge-Neutral {
+        .badge-yearly {
             background: #F3F4F6;
             color: #374151;
         }
 
-        .badge-Negative {
-            background: #FEE2E2;
-            color: #991B1B;
+        .badge-quarterly {
+            background: #ECFDF5;
+            color: #065F46;
         }
 
-        .metric-big {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-primary);
+        .badge-monthly {
+            background: #FFFBEB;
+            color: #92400E;
         }
 
-        .metric-label {
+        .product-name {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-meta {
             font-size: 0.875rem;
             color: var(--text-secondary);
+            margin-bottom: 1.5rem;
         }
 
-        .leaderboard-item {
+        .price-row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            margin-top: auto;
         }
 
-        .leaderboard-item:last-child {
-            border-bottom: none;
-        }
-
-        .company-name {
-            font-weight: 600;
-        }
-
-        .momentum-score {
+        .price {
             font-weight: 700;
-            color: var(--accent-color);
+            font-size: 1.25rem;
+        }
+
+        .btn {
+            background: var(--text-primary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #000;
         }
     </style>
 </head>
@@ -245,136 +177,51 @@
 
     <nav class="navbar">
         <div class="brand">
-            ⚡ HHeuristics <span>Fintech</span>
-        </div>
-        <div>
-            <a href="https://huggingface.co/spaces/ndwdgda/hheuristics-datasets" class="btn btn-outline">View Source</a>
+            ⚡ HHeuristics <span>Marketplace</span>
         </div>
     </nav>
 
     <div class="container">
         <div class="hero">
-            <h1>Fintech Growth & Sentiment</h1>
-            <p>Real-time intelligence on Digital Banks and Neobanks. Aggregated metrics from App Store, News, and Social
-                signals.</p>
+            <h1>Institutional-Grade Data</h1>
+            <p>Access our 5 proprietary datasets. Segmented by year, quarter, and month for optimal analysis.</p>
         </div>
 
-        <div class="grid">
-            <!-- Main Content: Event Feed -->
-            <div class="col-span-8">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Live Event Feed</div>
-                        <a href="/download/digest" class="btn btn-primary">⬇ Download Digest CSV</a>
-                    </div>
-
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Company</th>
-                                    <th>Event</th>
-                                    <th>Impact</th>
-                                    <th>Sentiment</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if recent_events %}
-                                {% for event in recent_events %}
-                                <tr>
-                                    <td class="company-name">{{ event.company }}</td>
-                                    <td>
-                                        <div style="font-weight: 500;">{{ event.event_type | replace('_', ' ') | title
-                                            }}</div>
-                                        <div style="color: var(--text-secondary); font-size: 0.8rem;">{{
-                                            event.event_detail }}</div>
-                                    </td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: 4px;">
-                                            <div
-                                                style="width: 40px; height: 4px; background: #E5E7EB; border-radius: 2px;">
-                                                <div
-                                                    style="width: {{ event.growth_impact_score * 10 }}%; height: 100%; background: var(--accent-color); border-radius: 2px;">
-                                                </div>
-                                            </div>
-                                            <span style="font-size: 0.75rem; color: var(--text-secondary);">{{
-                                                event.growth_impact_score }}/10</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="badge badge-{{ event.sentiment_category }}">{{
-                                            event.sentiment_category }}</span></td>
-                                    <td style="color: var(--text-secondary); white-space: nowrap;">{{ event.scraped_date
-                                        }}</td>
-                                </tr>
-                                {% endfor %}
-                                {% else %}
-                                <tr>
-                                    <td colspan="5" style="text-align: center; padding: 3rem;">
-                                        Initializing data pipeline... check back in 1 minute.
-                                    </td>
-                                </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        {% for v_name, products in verticals.items() %}
+        {% if products %}
+        <div class="vertical-section">
+            <div class="vertical-title">
+                {{ v_name }}
+                <span style="font-size: 0.875rem; color: var(--text-secondary); font-weight: 400; margin-left: 1rem;">
+                    {{ products|length }} Products Available
+                </span>
             </div>
-
-            <!-- Sidebar: Momentum & Stats -->
-            <div class="col-span-4">
-                <!-- Stats Grid -->
-                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                    <div class="card" style="margin-bottom: 0; text-align: center;">
-                        <div class="metric-big">{{ companies_tracked }}</div>
-                        <div class="metric-label">Banks Tracked</div>
+            <div class="product-grid">
+                {% for p in products %}
+                <div class="product-card">
+                    <span class="badge badge-{{ p.type }}">{{ p.type }}</span>
+                    <div class="product-name">{{ p.description }}</div>
+                    <div class="product-meta">
+                        {{ p.size_mb }} MB • CSV Format
                     </div>
-                    <div class="card" style="margin-bottom: 0; text-align: center;">
-                        <div class="metric-big">{{ total_events }}</div>
-                        <div class="metric-label">Total Events</div>
-                    </div>
-                </div>
-
-                <!-- Leaderboard -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">Momentum Leaders 🚀</div>
-                        <a href="/download/momentum" class="btn btn-outline"
-                            style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">CSV</a>
-                    </div>
-
-                    {% if momentum_leaders %}
-                    {% for leader in momentum_leaders %}
-                    <div class="leaderboard-item">
-                        <div>
-                            <div class="company-name">{{ leader.company }}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">Daily Score</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div class="momentum-score">{{ leader.daily_momentum }}</div>
-                            <div style="font-size: 0.75rem; color: var(--success-color);">{{ leader.trend }}</div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div style="text-align: center; color: var(--text-secondary); padding: 1rem;">
-                        Calculating scores...
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="card" style="background: #111827; color: white;">
-                    <div class="card-title" style="color: white; margin-bottom: 0.5rem;">API Access</div>
-                    <p style="color: #9CA3AF; font-size: 0.875rem; margin-bottom: 1rem;">
-                        Get this data programmatically via our JSON API.
-                    </p>
-                    <div
-                        style="background: rgba(255,255,255,0.1); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem;">
-                        GET /download/digest
+                    <div class="price-row">
+                        <div class="price">${{ p.price }}</div>
+                        <a href="{{ p.download_url }}" class="btn">Download</a>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
+        {% endif %}
+        {% endfor %}
+
+        {% if not verticals.values()|sum(start=[]) %}
+        <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+            <h3>Initializing Data Pipeline...</h3>
+            <p>Generating 5 datasets and segmenting files. Please refresh in 30 seconds.</p>
+        </div>
+        {% endif %}
+
     </div>
 
 </body>

@@ -1,13 +1,11 @@
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-import pandas as pd
 import os
-from datetime import datetime
 import uvicorn
 import logging
 from update_data import update_dataset
+from product_manager import DataProductManager
 
 # Configure logging
 logging.basicConfig(
@@ -19,73 +17,100 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+manager = DataProductManager()
 
 @app.on_event("startup")
 async def startup_event():
-    """Run data update on startup."""
+    """Run data update and segmentation on startup."""
     logger.info("Triggering startup data pipeline...")
     try:
         from starlette.concurrency import run_in_threadpool
+        # 1. Generate Master Files
         await run_in_threadpool(update_dataset)
-        logger.info("Startup pipeline completed.")
+        
+        # 2. Segment Files (Profitability Engine)
+        # We assume master files are in data/
+        masters = [
+            ("fintech_growth_digest.csv", "fintech"),
+            ("ai_talent_heatmap.csv", "ai_talent"),
+            ("esg_sentiment_tracker.csv", "esg"),
+            ("regulatory_risk_index.csv", "regulatory"),
+            ("supply_chain_risk.csv", "supply_chain")
+        ]
+        
+        for filename, p_type in masters:
+            path = os.path.join("data", filename)
+            if os.path.exists(path):
+                manager.smart_split_csv(path, p_type)
+                
+        logger.info("Startup pipeline and segmentation completed.")
     except Exception as e:
         logger.error(f"Startup pipeline failed: {e}")
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    logger.info("Dashboard accessed")
+async def marketplace(request: Request):
+    logger.info("Marketplace accessed")
     
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
-    digest_path = os.path.join(data_dir, 'fintech_growth_digest.csv')
-    scores_path = os.path.join(data_dir, 'fintech_momentum_scores.csv')
+    # Generate catalog from all subdirectories
+    all_products = {}
     
-    context = {
-        "request": request,
-        "total_events": 0,
-        "companies_tracked": 0,
-        "latest_update": "N/A",
-        "momentum_leaders": [],
-        "recent_events": []
+    # Scan all product directories
+    for dtype in ['bundles', 'yearly', 'quarterly', 'monthly']:
+        dpath = os.path.join("data", dtype)
+        if os.path.exists(dpath):
+            for f in os.listdir(dpath):
+                if f.endswith(".csv"):
+                    # Re-calculate info (or we could persist it, but this is simpler for now)
+                    fpath = os.path.join(dpath, f)
+                    # We need to reconstruct the metadata or just use file stats
+                    # For this demo, we'll do a quick lookup or re-calc
+                    # To keep it fast, we'll just use file size and name parsing
+                    size_mb = os.path.getsize(fpath) / (1024*1024)
+                    rows = 0 # Expensive to count every time, maybe skip or estimate
+                    
+                    # Parse type from folder
+                    p_type = dtype
+                    
+                    all_products[fpath] = {
+                        'type': p_type,
+                        'period': f.split('_')[-1].replace('.csv', ''), # Rough parse
+                        'rows': "N/A", # Skip for speed
+                        'size_mb': size_mb,
+                        'price': manager.calculate_price(p_type, 1000), # Dummy row count for price
+                        'description': f"{f.replace('_', ' ').title()}"
+                    }
+
+    catalog = manager.generate_catalog(all_products)
+    
+    # Group by Vertical for UI
+    verticals = {
+        "Fintech Growth": [],
+        "AI Talent": [],
+        "ESG Sentiment": [],
+        "Regulatory Risk": [],
+        "Supply Chain": []
     }
     
-    # Load Digest (Events)
-    if os.path.exists(digest_path):
-        try:
-            df_digest = pd.read_csv(digest_path)
-            if not df_digest.empty:
-                context["total_events"] = len(df_digest)
-                context["companies_tracked"] = df_digest['company'].nunique()
-                context["latest_update"] = df_digest['scraped_date'].max()
-                context["recent_events"] = df_digest.sort_values('scraped_date', ascending=False).head(10).to_dict(orient='records')
-        except Exception as e:
-            logger.error(f"Error reading digest: {e}")
-
-    # Load Scores (Momentum)
-    if os.path.exists(scores_path):
-        try:
-            df_scores = pd.read_csv(scores_path)
-            if not df_scores.empty:
-                # Get latest day's scores
-                latest_date = df_scores['date'].max()
-                latest_scores = df_scores[df_scores['date'] == latest_date]
-                context["momentum_leaders"] = latest_scores.sort_values('daily_momentum', ascending=False).head(5).to_dict(orient='records')
-        except Exception as e:
-            logger.error(f"Error reading scores: {e}")
+    for item in catalog:
+        name = item['filename'].lower()
+        if "fintech" in name: verticals["Fintech Growth"].append(item)
+        elif "ai_talent" in name: verticals["AI Talent"].append(item)
+        elif "esg" in name: verticals["ESG Sentiment"].append(item)
+        elif "regulatory" in name: verticals["Regulatory Risk"].append(item)
+        elif "supply" in name: verticals["Supply Chain"].append(item)
     
-    return templates.TemplateResponse("index.html", context)
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "verticals": verticals
+    })
 
-@app.get("/download/digest")
-async def download_digest():
-    path = os.path.join(os.path.dirname(__file__), 'data', 'fintech_growth_digest.csv')
-    if os.path.exists(path):
-        return FileResponse(path, media_type='text/csv', filename=f"fintech_growth_digest_{datetime.now().strftime('%Y%m%d')}.csv")
-    raise HTTPException(404, "File not found")
-
-@app.get("/download/momentum")
-async def download_momentum():
-    path = os.path.join(os.path.dirname(__file__), 'data', 'fintech_momentum_scores.csv')
-    if os.path.exists(path):
-        return FileResponse(path, media_type='text/csv', filename=f"fintech_momentum_scores_{datetime.now().strftime('%Y%m%d')}.csv")
+@app.get("/download/{filename}")
+async def download_file(filename: str):
+    # Search in all dirs
+    for dtype in ['bundles', 'yearly', 'quarterly', 'monthly']:
+        path = os.path.join("data", dtype, filename)
+        if os.path.exists(path):
+            return FileResponse(path, media_type='text/csv', filename=filename)
     raise HTTPException(404, "File not found")
 
 if __name__ == "__main__":
