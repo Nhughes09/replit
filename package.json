@@ -1,11 +1,13 @@
+```json
 {
     "name": "hheuristics-root",
     "private": true,
     "scripts": {
-        "build": "cd frontend && npm install && npm run build",
+        "build": "echo 'NEW GITHUB WAS USED: Starting Build...' && cd frontend && npm install && npm run build && echo 'Build Complete: frontend/dist created'",
         "deploy": "npm run build && wrangler deploy"
     },
     "devDependencies": {
         "wrangler": "^3.0.0"
     }
 }
+```
