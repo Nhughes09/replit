@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request, Depends, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi import FastAPI, Request, Depends, HTTPException, BackgroundTasks
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pandas as pd
@@ -8,6 +8,7 @@ from datetime import datetime
 import secrets
 import uvicorn
 import logging
+from update_data import update_dataset
 
 # Configure logging
 logging.basicConfig(
@@ -33,6 +34,28 @@ def verify_user(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
+@app.on_event("startup")
+async def startup_event():
+    """Run data update on startup if dataset is missing."""
+    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment.csv')
+    # Check if file exists and has more than just headers (approx check)
+    if not os.path.exists(csv_path) or os.path.getsize(csv_path) < 100:
+        logger.info("Dataset missing or empty on startup. Triggering initial data update...")
+        # We run this directly to ensure data is available soon, but in a way that doesn't block too long if possible.
+        # However, for the first run, blocking might be better to ensure data is there when user visits.
+        # But to be safe against timeouts, we'll let it run.
+        try:
+            update_dataset()
+        except Exception as e:
+            logger.error(f"Startup update failed: {e}")
+
+@app.post("/update-now")
+async def force_update(background_tasks: BackgroundTasks, username: str = Depends(verify_user)):
+    """Manually trigger a data update."""
+    logger.info(f"Manual update triggered by user: {username}")
+    background_tasks.add_task(update_dataset)
+    return RedirectResponse(url="/datasets", status_code=303)
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     logger.info("Home page accessed")
@@ -47,12 +70,14 @@ async def datasets(request: Request, username: str = Depends(verify_user)):
     if os.path.exists(csv_path):
         try:
             df = pd.read_csv(csv_path)
-            datasets_info.append({
-                "name": "AI & Tech Sentiment Tracker",
-                "records": len(df),
-                "updated": df['scraped_date'].max() if 'scraped_date' in df.columns else "N/A",
-                "download_url": "/download/ai"
-            })
+            # Check if it's just headers
+            if len(df) > 0:
+                datasets_info.append({
+                    "name": "AI & Tech Sentiment Tracker",
+                    "records": len(df),
+                    "updated": df['scraped_date'].max() if 'scraped_date' in df.columns else "N/A",
+                    "download_url": "/download/ai"
+                })
         except Exception as e:
             logger.error(f"Error reading dataset: {e}", exc_info=True)
     else:

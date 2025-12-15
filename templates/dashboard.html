@@ -1,43 +1,101 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>HHeuristics | Proprietary Datasets</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif; margin: 40px; background-color: #f8f9fa; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
-        header { border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
-        h1 { color: #007bff; }
-        .dataset-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin-bottom: 20px; background-color: #f8f9fa; }
-        .btn-download { background-color: #28a745; color: white; padding: 12px 25px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-download:hover { background-color: #218838; }
-        .meta { color: #6c757d; font-size: 0.9em; margin-top: 10px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            margin: 40px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #007bff;
+        }
+
+        .dataset-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .btn-download {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-download:hover {
+            background-color: #218838;
+        }
+
+        .meta {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>🔬 HHeuristics Proprietary Datasets</h1>
-            <p>Welcome{% if username %}, <strong>{{ username }}</strong>{% endif %}. Access our latest data-driven insights.</p>
+            <p>Welcome{% if username %}, <strong>{{ username }}</strong>{% endif %}. Access our latest data-driven
+                insights.</p>
         </header>
 
         <main>
-            <h2>Available Datasets</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Available Datasets</h2>
+                <form action="/update-now" method="post">
+                    <button type="submit"
+                        style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">🔄
+                        Force Update Now</button>
+                </form>
+            </div>
             {% if datasets %}
-                {% for dataset in datasets %}
-                <div class="dataset-card">
-                    <h3>{{ dataset.name }}</h3>
-                    <p>This dataset tracks news sentiment for major AI and technology companies, updated daily.</p>
-                    <div class="meta">
-                        <strong>Records:</strong> {{ dataset.records }} |
-                        <strong>Last Updated:</strong> {{ dataset.updated }}
-                    </div>
-                    <a href="{{ dataset.download_url }}" class="btn-download">⬇ Download Latest CSV</a>
+            {% for dataset in datasets %}
+            <div class="dataset-card">
+                <h3>{{ dataset.name }}</h3>
+                <p>This dataset tracks news sentiment for major AI and technology companies, updated daily.</p>
+                <div class="meta">
+                    <strong>Records:</strong> {{ dataset.records }} |
+                    <strong>Last Updated:</strong> {{ dataset.updated }}
                 </div>
-                {% endfor %}
+                <a href="{{ dataset.download_url }}" class="btn-download">⬇ Download Latest CSV</a>
+            </div>
+            {% endfor %}
             {% else %}
-                <p>No datasets are currently available. The first daily update may not have run yet.</p>
+            <p>No datasets are currently available. The system is likely fetching the initial data. Please refresh in a
+                few seconds.</p>
             {% endif %}
         </main>
 
@@ -46,4 +104,5 @@
         </footer>
     </div>
 </body>
+
 </html>
