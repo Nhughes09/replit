@@ -59,8 +59,29 @@ const ProductSection = ({ vertical, id }) => {
             addDebugLog(`Polling ${apiUrl}/api/status...`);
             const res = await fetch(`${apiUrl}/api/status`);
 
+            // Log Headers for debugging
+            const dateHeader = res.headers.get('date');
+            const serverHeader = res.headers.get('server');
+
             if (res.status === 404) {
-                addDebugLog("Status: 404 Not Found (Backend Building/Starting)");
+                addDebugLog(`Status: 404 Not Found`);
+                addDebugLog(`Server: ${serverHeader} | Time: ${dateHeader}`);
+
+                // CHECK IF IT'S THE OLD BACKEND
+                // If /api/status is 404 but /api/catalog works, it's the old version.
+                try {
+                    const catRes = await fetch(`${apiUrl}/api/catalog`);
+                    if (catRes.ok) {
+                        addDebugLog("⚠️ DIAGNOSIS: OLD BACKEND DETECTED");
+                        addDebugLog("The server is online but running v1.0 code.");
+                        addDebugLog("Waiting for v2.1 update to apply...");
+                    } else {
+                        addDebugLog("Diagnosis: Server might be completely down.");
+                    }
+                } catch (err) {
+                    addDebugLog("Diagnosis Check Failed.");
+                }
+
                 setStatus({ detail: "Not Found" });
             } else if (res.status === 503) {
                 addDebugLog("Status: 503 Service Unavailable (Initializing)");
@@ -71,12 +92,10 @@ const ProductSection = ({ vertical, id }) => {
                 addDebugLog(`Status: 200 OK (Ready: ${data.ready})`);
                 setStatus(data);
 
-                // Keep polling if not ready
                 if (!data.ready) {
                     setTimeout(pollStatus, 1000);
                     return;
                 } else {
-                    // Retry main fetch if ready
                     addDebugLog("System Ready. Reloading...");
                     window.location.reload();
                     return;
