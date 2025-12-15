@@ -1,11 +1,10 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, BackgroundTasks
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.staticfiles import StaticFiles
 import pandas as pd
 import os
 from datetime import datetime
-import secrets
 import uvicorn
 import logging
 from update_data import update_dataset
@@ -20,94 +19,74 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-security = HTTPBasic()
-
-# Basic Auth
-def verify_user(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, "admin")
-    correct_password = secrets.compare_digest(credentials.password, "hheuristics2025")
-    if not (correct_username and correct_password):
-        logger.warning(f"Failed login attempt for user: {credentials.username}")
-        raise HTTPException(
-            status_code=401,
-            detail="Unauthorized",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
 
 @app.on_event("startup")
 async def startup_event():
-    """Run data update on startup if dataset is missing."""
-    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment_enhanced.csv')
-    if not os.path.exists(csv_path) or os.path.getsize(csv_path) < 100:
-        logger.info("Enhanced dataset missing or empty on startup. Triggering initial data update...")
-        try:
-            from starlette.concurrency import run_in_threadpool
-            await run_in_threadpool(update_dataset)
-            logger.info("Startup data update completed successfully.")
-        except Exception as e:
-            logger.error(f"Startup update failed: {e}")
+    """Run data update on startup."""
+    logger.info("Triggering startup data pipeline...")
+    try:
+        from starlette.concurrency import run_in_threadpool
+        await run_in_threadpool(update_dataset)
+        logger.info("Startup pipeline completed.")
+    except Exception as e:
+        logger.error(f"Startup pipeline failed: {e}")
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request, username: str = Depends(verify_user)):
-    logger.info(f"Dashboard accessed by user: {username}")
+async def dashboard(request: Request):
+    logger.info("Dashboard accessed")
     
-    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment_enhanced.csv')
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    digest_path = os.path.join(data_dir, 'fintech_growth_digest.csv')
+    scores_path = os.path.join(data_dir, 'fintech_momentum_scores.csv')
     
-    metrics = {
-        "total_articles": 0,
-        "unique_companies": 0,
-        "last_update": "N/A",
-        "sentiment_summary": {"Positive": 0, "Neutral": 0, "Negative": 0},
-        "sample_data": []
+    context = {
+        "request": request,
+        "total_events": 0,
+        "companies_tracked": 0,
+        "latest_update": "N/A",
+        "momentum_leaders": [],
+        "recent_events": []
     }
     
-    if os.path.exists(csv_path):
+    # Load Digest (Events)
+    if os.path.exists(digest_path):
         try:
-            df = pd.read_csv(csv_path)
-            if len(df) > 0:
-                metrics["total_articles"] = len(df)
-                metrics["unique_companies"] = df['symbol'].nunique()
-                metrics["last_update"] = df['scraped_date'].max()
-                
-                # Sentiment Summary
-                sentiment_counts = df['sentiment_category'].value_counts().to_dict()
-                metrics["sentiment_summary"] = {
-                    "Positive": sentiment_counts.get("Positive", 0),
-                    "Neutral": sentiment_counts.get("Neutral", 0),
-                    "Negative": sentiment_counts.get("Negative", 0)
-                }
-                
-                # Sample Data (First 10 rows)
-                # Convert to list of dicts for Jinja2
-                metrics["sample_data"] = df.head(10).to_dict(orient='records')
-                
+            df_digest = pd.read_csv(digest_path)
+            if not df_digest.empty:
+                context["total_events"] = len(df_digest)
+                context["companies_tracked"] = df_digest['company'].nunique()
+                context["latest_update"] = df_digest['scraped_date'].max()
+                context["recent_events"] = df_digest.sort_values('scraped_date', ascending=False).head(10).to_dict(orient='records')
         except Exception as e:
-            logger.error(f"Error reading dataset: {e}", exc_info=True)
-    else:
-        logger.warning(f"Dataset file not found at {csv_path}")
-    
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "username": username,
-        "metrics": metrics
-    })
+            logger.error(f"Error reading digest: {e}")
 
-@app.get("/download")
-async def download_dataset(username: str = Depends(verify_user)):
-    logger.info(f"Download requested by user: {username}")
-    csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment_enhanced.csv')
-    if not os.path.exists(csv_path):
-        logger.error("Download failed: Dataset not found")
-        raise HTTPException(status_code=404, detail="Dataset not found")
+    # Load Scores (Momentum)
+    if os.path.exists(scores_path):
+        try:
+            df_scores = pd.read_csv(scores_path)
+            if not df_scores.empty:
+                # Get latest day's scores
+                latest_date = df_scores['date'].max()
+                latest_scores = df_scores[df_scores['date'] == latest_date]
+                context["momentum_leaders"] = latest_scores.sort_values('daily_momentum', ascending=False).head(5).to_dict(orient='records')
+        except Exception as e:
+            logger.error(f"Error reading scores: {e}")
     
-    filename = f"hheuristics_ai_sentiment_{datetime.now().strftime('%Y-%m-%d')}.csv"
-    
-    return FileResponse(
-        csv_path,
-        media_type='text/csv',
-        filename=filename
-    )
+    return templates.TemplateResponse("index.html", context)
+
+@app.get("/download/digest")
+async def download_digest():
+    path = os.path.join(os.path.dirname(__file__), 'data', 'fintech_growth_digest.csv')
+    if os.path.exists(path):
+        return FileResponse(path, media_type='text/csv', filename=f"fintech_growth_digest_{datetime.now().strftime('%Y%m%d')}.csv")
+    raise HTTPException(404, "File not found")
+
+@app.get("/download/momentum")
+async def download_momentum():
+    path = os.path.join(os.path.dirname(__file__), 'data', 'fintech_momentum_scores.csv')
+    if os.path.exists(path):
+        return FileResponse(path, media_type='text/csv', filename=f"fintech_momentum_scores_{datetime.now().strftime('%Y%m%d')}.csv")
+    raise HTTPException(404, "File not found")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
