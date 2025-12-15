@@ -12,6 +12,11 @@ const ProductSection = ({ vertical, id }) => {
     const [showFiles, setShowFiles] = useState(false);
 
     const [status, setStatus] = useState(null);
+    const [debugLogs, setDebugLogs] = useState([]);
+
+    const addDebugLog = (msg) => {
+        setDebugLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 50));
+    };
 
     useEffect(() => {
         setLoading(true);
@@ -30,6 +35,7 @@ const ProductSection = ({ vertical, id }) => {
 
                 if (previewData.error || predictionData.error || predictionData.detail) {
                     console.error("API Error:", previewData.error || predictionData.error || predictionData.detail);
+                    addDebugLog(`API Error: ${previewData.error || predictionData.error || predictionData.detail}`);
                     // Start polling status if error
                     pollStatus();
                 }
@@ -41,6 +47,7 @@ const ProductSection = ({ vertical, id }) => {
             })
             .catch(err => {
                 console.error("Fetch Error:", err);
+                addDebugLog(`Fetch Error: ${err.message}`);
                 setLoading(false);
                 pollStatus();
             });
@@ -49,19 +56,40 @@ const ProductSection = ({ vertical, id }) => {
     const pollStatus = async () => {
         const apiUrl = import.meta.env.VITE_API_URL || '';
         try {
+            addDebugLog(`Polling ${apiUrl}/api/status...`);
             const res = await fetch(`${apiUrl}/api/status`);
-            const data = await res.json();
-            setStatus(data);
 
-            // Keep polling if not ready
-            if (!data.ready) {
-                setTimeout(pollStatus, 1000);
+            if (res.status === 404) {
+                addDebugLog("Status: 404 Not Found (Backend Building/Starting)");
+                setStatus({ detail: "Not Found" });
+            } else if (res.status === 503) {
+                addDebugLog("Status: 503 Service Unavailable (Initializing)");
+                const data = await res.json();
+                setStatus(data);
+            } else if (res.ok) {
+                const data = await res.json();
+                addDebugLog(`Status: 200 OK (Ready: ${data.ready})`);
+                setStatus(data);
+
+                // Keep polling if not ready
+                if (!data.ready) {
+                    setTimeout(pollStatus, 1000);
+                    return;
+                } else {
+                    // Retry main fetch if ready
+                    addDebugLog("System Ready. Reloading...");
+                    window.location.reload();
+                    return;
+                }
             } else {
-                // Retry main fetch if ready
-                window.location.reload();
+                addDebugLog(`Status: ${res.status} ${res.statusText}`);
             }
+
+            setTimeout(pollStatus, 5000);
         } catch (e) {
             console.error("Status poll failed", e);
+            addDebugLog(`Poll Connection Failed: ${e.message}`);
+            setTimeout(pollStatus, 5000);
         }
     };
 
@@ -183,17 +211,29 @@ const ProductSection = ({ vertical, id }) => {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="space-y-3">
-                                    <p className="text-sm text-slate-500">
-                                        {status && status.detail === "Not Found"
-                                            ? "Backend is updating to v2.1... (This may take 2-3 mins)"
-                                            : "Connecting to ML Engine Status Stream..."}
-                                    </p>
-                                    {status && status.detail === "Not Found" && (
-                                        <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                            <div className="bg-blue-500 h-full animate-progress-indeterminate"></div>
-                                        </div>
-                                    )}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-slate-500 font-medium">
+                                            {status && status.detail === "Not Found"
+                                                ? "Backend is updating to v2.1... (This may take 2-3 mins)"
+                                                : "Connecting to ML Engine Status Stream..."}
+                                        </p>
+                                        {status && status.detail === "Not Found" && (
+                                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                                <div className="bg-blue-500 h-full animate-progress-indeterminate"></div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Debug Console for Visibility */}
+                                    <div className="bg-black rounded-md p-3 font-mono text-[10px] text-slate-400 h-32 overflow-y-auto border border-slate-800">
+                                        <div className="text-slate-500 mb-1 border-b border-slate-800 pb-1">NETWORK DEBUG LOG:</div>
+                                        {debugLogs.map((log, i) => (
+                                            <div key={i} className={`${log.includes('404') ? 'text-amber-500' : 'text-slate-300'}`}>
+                                                {log}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
