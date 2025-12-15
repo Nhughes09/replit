@@ -216,6 +216,10 @@ async def get_catalog():
         logger.error(traceback.format_exc())
         raise e
 
+from json_utils import convert_numpy_types, log_object_types
+
+# ... (imports remain the same)
+
 @app.get("/api/preview/{vertical}")
 async def get_preview(vertical: str):
     """Get preview data for a specific vertical"""
@@ -251,14 +255,17 @@ async def get_preview(vertical: str):
         # Get latest row for "Live Signals"
         latest = df.iloc[-1].to_dict()
         
-        return JSONResponse({
+        response_data = {
             "vertical": vertical,
             "latest": latest,
             "history": history,
             "total_rows": len(df)
-        })
-    except Exception as e:
-        logger.error(f"Error fetching preview: {e}")
+        }
+        
+        # Ensure all types are JSON serializable
+        response_data = convert_numpy_types(response_data)
+        
+        return JSONResponse(response_data)
     except Exception as e:
         logger.error(f"Error fetching preview: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
@@ -393,9 +400,24 @@ async def get_prediction(vertical: str):
         predictor = predictors[vertical]
         result = predictor.predict(latest_data)
         
+        # Convert NumPy types to Python types
+        result = convert_numpy_types(result)
+        
         return JSONResponse(result)
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
+        # Detailed logging for debugging
+        logger.error("Dumping object types for debugging:")
+        try:
+            # We assume 'result' might be defined if the error happened during serialization
+            # If it happened before, this might fail, so we wrap it
+            if 'result' in locals():
+                log_object_types(result)
+            else:
+                logger.error("Result object was not created.")
+        except Exception as log_err:
+            logger.error(f"Failed to log object types: {log_err}")
+            
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/api/pnl")
