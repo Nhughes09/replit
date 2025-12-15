@@ -1,3 +1,12 @@
+---
+title: HHeuristics Datasets
+emoji: 📊
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # HHeuristics Proprietary Datasets App
 
 A FastAPI application that generates, updates, and sells proprietary market research datasets in CSV format. The primary dataset tracks "AI & Tech News Sentiment" using the Finnhub API.

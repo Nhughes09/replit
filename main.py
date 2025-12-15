@@ -7,6 +7,15 @@ import os
 from datetime import datetime
 import secrets
 import uvicorn
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -16,6 +25,7 @@ def verify_user(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = secrets.compare_digest(credentials.username, "admin")
     correct_password = secrets.compare_digest(credentials.password, "hheuristics2025")
     if not (correct_username and correct_password):
+        logger.warning(f"Failed login attempt for user: {credentials.username}")
         raise HTTPException(
             status_code=401,
             detail="Unauthorized",
@@ -25,10 +35,12 @@ def verify_user(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+    logger.info("Home page accessed")
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 @app.get("/datasets")
 async def datasets(request: Request, username: str = Depends(verify_user)):
+    logger.info(f"Datasets page accessed by user: {username}")
     datasets_info = []
     csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment.csv')
     
@@ -42,7 +54,9 @@ async def datasets(request: Request, username: str = Depends(verify_user)):
                 "download_url": "/download/ai"
             })
         except Exception as e:
-            print(f"Error reading dataset: {e}")
+            logger.error(f"Error reading dataset: {e}", exc_info=True)
+    else:
+        logger.warning(f"Dataset file not found at {csv_path}")
     
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -52,8 +66,10 @@ async def datasets(request: Request, username: str = Depends(verify_user)):
 
 @app.get("/download/ai")
 async def download_ai(username: str = Depends(verify_user)):
+    logger.info(f"Download requested by user: {username}")
     csv_path = os.path.join(os.path.dirname(__file__), 'data', 'ai_sentiment.csv')
     if not os.path.exists(csv_path):
+        logger.error("Download failed: Dataset not found")
         raise HTTPException(status_code=404, detail="Dataset not found")
     
     return FileResponse(
@@ -63,5 +79,5 @@ async def download_ai(username: str = Depends(verify_user)):
     )
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 7860))
     uvicorn.run(app, host="0.0.0.0", port=port)
