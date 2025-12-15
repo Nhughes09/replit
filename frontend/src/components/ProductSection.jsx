@@ -75,7 +75,7 @@ const ProductSection = ({ vertical, id }) => {
     );
 
     // Config based on vertical
-    const config = {
+    const configs = {
         fintech: {
             title: "Fintech Growth Intelligence",
             icon: <Activity className="text-blue-600" size={32} />,
@@ -106,7 +106,9 @@ const ProductSection = ({ vertical, id }) => {
             color: "amber",
             desc: "Predicting disruption risks and recovery timelines."
         }
-    }[vertical] || config.fintech;
+    };
+
+    const config = configs[vertical] || configs.fintech;
 
     const isError = !data || data.error || !prediction || prediction.error || prediction.detail || !prediction.predictions;
 
