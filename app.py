@@ -169,38 +169,91 @@ async def get_preview(vertical: str):
         })
     except Exception as e:
         logger.error(f"Error fetching preview: {e}")
+    except Exception as e:
+        logger.error(f"Error fetching preview: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
-@app.get("/api/download/{vertical}")
-async def download_dataset(vertical: str):
-    """Download the full CSV dataset for a vertical"""
+@app.get("/api/files/{vertical}")
+async def get_vertical_files(vertical: str):
+    """Get list of downloadable files for a vertical"""
     try:
         data_dir = os.getenv("DATA_DIR", "data")
-        files = {
-            "fintech": "fintech_growth_digest.csv",
-            "ai_talent": "ai_talent_heatmap.csv",
-            "esg": "esg_sentiment_tracker.csv",
-            "regulatory": "regulatory_risk_index.csv",
-            "supply_chain": "supply_chain_risk.csv"
+        
+        # Map vertical to base filename
+        base_map = {
+            "fintech": "fintech_growth_digest",
+            "ai_talent": "ai_talent_heatmap",
+            "esg": "esg_sentiment_tracker",
+            "regulatory": "regulatory_risk_index",
+            "supply_chain": "supply_chain_risk"
         }
         
-        if vertical not in files:
+        if vertical not in base_map:
             raise HTTPException(404, "Vertical not found")
             
-        fpath = os.path.join(data_dir, files[vertical])
+        base_name = base_map[vertical]
+        files_list = []
+        
+        # Check for Yearly and Quarterly files
+        # Pattern: {base_name}_2025_yearly.csv, {base_name}_2025_q1.csv, etc.
+        
+        # 1. Yearly
+        yearly_name = f"{base_name}_2025_yearly.csv"
+        y_path = os.path.join(data_dir, yearly_name)
+        if os.path.exists(y_path):
+            size_bytes = os.path.getsize(y_path)
+            size_str = f"{size_bytes / (1024*1024):.2f} MB" if size_bytes > 1024*1024 else f"{size_bytes / 1024:.2f} KB"
+            files_list.append({
+                "name": "2025 Full Year",
+                "filename": yearly_name,
+                "size": size_str,
+                "type": "YEARLY"
+            })
+            
+        # 2. Quarterly
+        for q in [1, 2, 3, 4]:
+            q_name = f"{base_name}_2025_q{q}.csv"
+            q_path = os.path.join(data_dir, q_name)
+            if os.path.exists(q_path):
+                size_bytes = os.path.getsize(q_path)
+                size_str = f"{size_bytes / (1024*1024):.2f} MB" if size_bytes > 1024*1024 else f"{size_bytes / 1024:.2f} KB"
+                files_list.append({
+                    "name": f"2025 Q{q}",
+                    "filename": q_name,
+                    "size": size_str,
+                    "type": "QUARTERLY"
+                })
+                
+        return JSONResponse({"files": files_list})
+    except Exception as e:
+        logger.error(f"Error listing files: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/api/download/{filename}")
+async def download_dataset(filename: str):
+    """Download a specific CSV file"""
+    try:
+        data_dir = os.getenv("DATA_DIR", "data")
+        fpath = os.path.join(data_dir, filename)
+        
+        # Security check: ensure no directory traversal
+        if ".." in filename or "/" in filename:
+             raise HTTPException(400, "Invalid filename")
+
         if not os.path.exists(fpath):
-            fpath = os.path.join("data", files[vertical])
+            # Fallback for local dev
+            fpath = os.path.join("data", filename)
             if not os.path.exists(fpath):
-                 raise HTTPException(404, "Dataset not found")
+                 raise HTTPException(404, "File not found")
         
         return FileResponse(
             path=fpath, 
-            filename=files[vertical], 
+            filename=filename, 
             media_type='text/csv', 
-            headers={"Content-Disposition": f"attachment; filename={files[vertical]}"}
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
     except Exception as e:
-        logger.error(f"Error downloading dataset: {e}")
+        logger.error(f"Error downloading file: {e}")
         raise HTTPException(500, str(e))
 
 @app.get("/")

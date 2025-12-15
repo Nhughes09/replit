@@ -306,59 +306,60 @@ class PremiumDataEngine:
         details = {}
         
         for key, generator in self.verticals.items():
-            filename = files[key]
-            filepath = os.path.join(DATA_DIR, filename)
+            base_filename = files[key].replace('.csv', '')
             
-            # Check if exists to determine backfill or update
-            if not os.path.exists(filepath):
+            # 1. Generate or Load Full Dataset
+            full_df = pd.DataFrame()
+            
+            # Check if we have existing data to append to
+            # We'll look for the Yearly file as the "master"
+            yearly_path = os.path.join(DATA_DIR, f"{base_filename}_2025_yearly.csv")
+            
+            if not os.path.exists(yearly_path):
                 logger.info(f"Backfilling {key} (365 days)...")
                 dates = self.generate_date_range(365)
                 all_data = []
                 for d in dates:
                     all_data.extend(generator(d))
-                
-                df = pd.DataFrame(all_data)
-                df.to_csv(filepath, index=False)
-                added = os.path.getsize(filepath)
-                logger.info(f"Created {filename} with {len(df)} rows.")
+                full_df = pd.DataFrame(all_data)
             else:
                 logger.info(f"Updating {key} (Daily)...")
+                # Load existing
+                full_df = pd.read_csv(yearly_path)
+                
                 # Generate today's data
-                today_data = generator(datetime.now())
-                df_new = pd.DataFrame(today_data)
+                today = datetime.now()
+                today_str = today.strftime("%Y-%m-%d")
                 
-                # Append
-                df_old = pd.read_csv(filepath)
-                # Filter out if today already exists to avoid dupes
-                today_str = datetime.now().strftime("%Y-%m-%d")
-                df_old = df_old[df_old['date'] != today_str]
-                
-                df_combined = pd.concat([df_old, df_new], ignore_index=True)
-                df_combined.to_csv(filepath, index=False)
-                
-                new_size = os.path.getsize(filepath)
-                # Approximate added bytes (not perfect due to compression/overhead but good enough)
-                added = new_size - os.path.getsize(filepath) # Wait, I just overwrote it. 
-                # Let's just use the size of the new dataframe in memory or string buffer?
-                # Simpler: Just track total size increase is hard if I overwrite.
-                # Let's assume added bytes = len(df_new) * avg_row_size roughly.
-                # Or better, just use the file size difference logic from before, but I need to measure BEFORE overwrite.
-                # Re-implementing logic:
-                # Measure before
-                # Overwrite
-                # Measure after
-                pass # Logic handled in wrapper or I can fix it here.
-                
-                # Let's fix the delta logic properly
-                # Actually, I'll just return the status at the end.
+                # Check if today exists
+                if today_str not in full_df['date'].values:
+                    today_data = generator(today)
+                    new_row = pd.DataFrame(today_data)
+                    full_df = pd.concat([full_df, new_row], ignore_index=True)
             
-            # Recalculate size for status
-            details[filename] = os.path.getsize(filepath) # Just reporting total size for now or I can fix delta.
+            # 2. Save Split Files
+            # Ensure 'date' is datetime
+            full_df['date'] = pd.to_datetime(full_df['date'])
             
-        # For the "System Status" delta, I need to know how much was ADDED.
-        # Since I'm running this in a "run_pipeline", I should probably do the measurement here.
-        
-        # Let's refine the loop to handle delta correctly
+            # Save Yearly (2025)
+            df_2025 = full_df[full_df['date'].dt.year == 2025]
+            if not df_2025.empty:
+                df_2025.to_csv(yearly_path, index=False)
+                details[f"{base_filename}_2025_yearly.csv"] = os.path.getsize(yearly_path)
+            
+            # Save Quarterlys
+            for q in [1, 2, 3, 4]:
+                df_q = df_2025[df_2025['date'].dt.quarter == q]
+                if not df_q.empty:
+                    q_path = os.path.join(DATA_DIR, f"{base_filename}_2025_q{q}.csv")
+                    df_q.to_csv(q_path, index=False)
+                    details[f"{base_filename}_2025_q{q}.csv"] = os.path.getsize(q_path)
+
+            # Save "Latest" for Preview API (Legacy support)
+            # We'll just overwrite the original filename so API doesn't break immediately
+            legacy_path = os.path.join(DATA_DIR, files[key])
+            full_df.to_csv(legacy_path, index=False)
+
         return self.finalize_status()
 
     def finalize_status(self):

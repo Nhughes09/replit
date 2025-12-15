@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Zap, Shield, Globe, Lock, Info, Download } from 'lucide-react';
+import { LineChart, Line, AreaChart, Area, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Activity, Zap, Shield, Globe, Lock, Info, Download, FileText, ChevronDown } from 'lucide-react';
 import FintechThermograph from './visualizations/FintechThermograph';
 import AiAirportBoard from './visualizations/AiAirportBoard';
 import EsgPressureChamber from './visualizations/EsgPressureChamber';
 
 const ProductSection = ({ vertical, id }) => {
     const [data, setData] = useState(null);
+    const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showFiles, setShowFiles] = useState(false);
 
     useEffect(() => {
         setLoading(true);
-        fetch(`/api/preview/${vertical}`)
-            .then(res => res.json())
-            .then(data => {
-                setData(data);
+        Promise.all([
+            fetch(`/api/preview/${vertical}`).then(res => res.json()),
+            fetch(`/api/files/${vertical}`).then(res => res.json())
+        ])
+            .then(([previewData, filesData]) => {
+                setData(previewData);
+                setFiles(filesData.files || []);
                 setLoading(false);
             })
             .catch(err => {
@@ -186,13 +191,44 @@ const ProductSection = ({ vertical, id }) => {
                         <p className="text-slate-500 text-lg">Data Alchemy Pipeline: Raw Sources → Profitable Insights</p>
                     </div>
                 </div>
-                <a
-                    href={`/api/download/${vertical}`}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
-                >
-                    <Download size={18} />
-                    Download CSV
-                </a>
+                <div className="relative">
+                    <button
+                        onClick={() => setShowFiles(!showFiles)}
+                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
+                    >
+                        <Download size={18} />
+                        Download Data
+                        <ChevronDown size={16} className={`transition-transform ${showFiles ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {showFiles && (
+                        <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50">
+                            <div className="p-3 bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Available Datasets
+                            </div>
+                            <div className="max-h-64 overflow-y-auto">
+                                {files.map((file, i) => (
+                                    <a
+                                        key={i}
+                                        href={`/api/download/${file.filename}`}
+                                        className="block p-3 hover:bg-blue-50 transition-colors border-b border-slate-50 last:border-0"
+                                    >
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-sm font-bold text-slate-900">{file.name}</span>
+                                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{file.type}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                                            <FileText size={12} />
+                                            {file.filename}
+                                            <span className="text-slate-300">•</span>
+                                            {file.size}
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -253,21 +289,91 @@ const ProductSection = ({ vertical, id }) => {
                                 {vertical === 'fintech' && <FintechThermograph data={latest} />}
                                 {vertical === 'ai_talent' && <AiAirportBoard data={latest} />}
                                 {vertical === 'esg' && <EsgPressureChamber data={latest} />}
-                                {(vertical === 'regulatory' || vertical === 'supply_chain') && (
+                                {vertical === 'regulatory' && (
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <ComposedChart data={history}>
+                                                <defs>
+                                                    <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
+                                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                />
+                                                <YAxis
+                                                    hide
+                                                    domain={[0, 100]}
+                                                />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                    labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+                                                    itemStyle={{ color: '#0f172a', fontSize: '12px', fontWeight: 'bold' }}
+                                                />
+                                                <Area
+                                                    type="monotone"
+                                                    dataKey="enforcement_probability_pct"
+                                                    name="Enforcement Probability"
+                                                    stroke="#ef4444"
+                                                    fillOpacity={1}
+                                                    fill="url(#colorRisk)"
+                                                    strokeWidth={2}
+                                                />
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="regulatory_foresight"
+                                                    name="Compliance Readiness"
+                                                    stroke="#3b82f6"
+                                                    strokeWidth={2}
+                                                    strokeDasharray="4 4"
+                                                    dot={false}
+                                                />
+                                                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                                            </ComposedChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                )}
+                                {vertical === 'supply_chain' && (
                                     <div className="h-[300px] w-full">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <LineChart data={history}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                                <XAxis dataKey="date" hide />
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                                <XAxis
+                                                    dataKey="date"
+                                                    tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                    tick={{ fontSize: 10, fill: '#94a3b8' }}
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                />
                                                 <YAxis hide domain={[0, 100]} />
-                                                <Tooltip contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', color: '#0f172a' }} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                    labelStyle={{ color: '#64748b', fontSize: '12px', marginBottom: '4px' }}
+                                                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                                />
                                                 <Line
                                                     type="monotone"
-                                                    dataKey={vertical === 'regulatory' ? 'enforcement_probability_pct' : 'disruption_probability'}
-                                                    stroke={vertical === 'regulatory' ? '#ef4444' : '#f59e0b'}
-                                                    strokeWidth={3}
+                                                    dataKey="disruption_risk"
+                                                    name="Disruption Risk"
+                                                    stroke="#f59e0b"
+                                                    strokeWidth={2}
                                                     dot={false}
                                                 />
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="resilience_score"
+                                                    name="Resilience Score"
+                                                    stroke="#10b981"
+                                                    strokeWidth={2}
+                                                    dot={false}
+                                                />
+                                                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                                             </LineChart>
                                         </ResponsiveContainer>
                                     </div>
