@@ -11,6 +11,8 @@ const ProductSection = ({ vertical, id }) => {
     const [loading, setLoading] = useState(true);
     const [showFiles, setShowFiles] = useState(false);
 
+    const [status, setStatus] = useState(null);
+
     useEffect(() => {
         setLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || '';
@@ -28,7 +30,8 @@ const ProductSection = ({ vertical, id }) => {
 
                 if (previewData.error || predictionData.error || predictionData.detail) {
                     console.error("API Error:", previewData.error || predictionData.error || predictionData.detail);
-                    // Don't crash, just set loading false and maybe show error
+                    // Start polling status if error
+                    pollStatus();
                 }
 
                 setData(previewData);
@@ -39,8 +42,28 @@ const ProductSection = ({ vertical, id }) => {
             .catch(err => {
                 console.error("Fetch Error:", err);
                 setLoading(false);
+                pollStatus();
             });
     }, [vertical]);
+
+    const pollStatus = async () => {
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        try {
+            const res = await fetch(`${apiUrl}/api/status`);
+            const data = await res.json();
+            setStatus(data);
+
+            // Keep polling if not ready
+            if (!data.ready) {
+                setTimeout(pollStatus, 1000);
+            } else {
+                // Retry main fetch if ready
+                window.location.reload();
+            }
+        } catch (e) {
+            console.error("Status poll failed", e);
+        }
+    };
 
     if (loading) return (
         <div className="h-[600px] flex items-center justify-center border-b border-slate-200 bg-slate-50">
@@ -145,11 +168,35 @@ const ProductSection = ({ vertical, id }) => {
                 {/* Content Area */}
                 {isError ? (
                     <div className="h-[400px] flex items-center justify-center text-slate-400 bg-white rounded-xl border border-slate-200">
-                        <div className="text-center">
-                            <p className="mb-2 font-bold text-slate-600">System Initializing...</p>
-                            <p className="text-sm">Waiting for ML Engine to come online.</p>
-                            {prediction && (prediction.error || prediction.detail) && (
-                                <p className="text-xs text-red-400 mt-2 bg-red-50 px-2 py-1 rounded">Error: {prediction.error || prediction.detail}</p>
+                        <div className="text-center max-w-md w-full p-6">
+                            <p className="mb-4 font-bold text-slate-700 text-lg">System Initializing...</p>
+
+                            {status ? (
+                                <div className="bg-slate-900 rounded-lg p-4 text-left font-mono text-xs text-emerald-400 shadow-inner h-48 overflow-y-auto flex flex-col-reverse">
+                                    {status.logs.map((log, i) => (
+                                        <div key={i} className="mb-1 border-b border-slate-800/50 pb-1 last:border-0">
+                                            <span className="text-slate-500 mr-2">[{new Date().toLocaleTimeString()}]</span>
+                                            {log}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm">Connecting to ML Engine Status Stream...</p>
+                            )}
+
+                            {status && (
+                                <div className="mt-4">
+                                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                                        <span>{status.step}</span>
+                                        <span>{status.progress}%</span>
+                                    </div>
+                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-blue-500 transition-all duration-500"
+                                            style={{ width: `${status.progress}%` }}
+                                        />
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>

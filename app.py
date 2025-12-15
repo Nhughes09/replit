@@ -31,21 +31,73 @@ app.add_middleware(
 # Initialize Managers
 data_manager = DataProductManager()
 
-# Initialize ML Engine
-from ml_engine.pnl_tracker import PnLTracker
-from ml_engine.predictors import (
-    FintechPredictor, AiTalentPredictor, EsgPredictor, 
-    RegulatoryPredictor, SupplyChainPredictor
-)
+# Global ML State
+import threading
+import time
 
-pnl_tracker = PnLTracker()
-predictors = {
-    "fintech": FintechPredictor("fintech", pnl_tracker),
-    "ai_talent": AiTalentPredictor("ai_talent", pnl_tracker),
-    "esg": EsgPredictor("esg", pnl_tracker),
-    "regulatory": RegulatoryPredictor("regulatory", pnl_tracker),
-    "supply_chain": SupplyChainPredictor("supply_chain", pnl_tracker)
+ml_status = {
+    "ready": False,
+    "step": "Initializing",
+    "logs": ["System startup initiated..."],
+    "progress": 0
 }
+
+predictors = {}
+pnl_tracker = None
+
+def initialize_ml_engine():
+    global predictors, pnl_tracker, ml_status
+    
+    try:
+        ml_status["step"] = "Importing ML Libraries"
+        ml_status["logs"].append("Loading PyTorch, XGBoost, and Scikit-Learn...")
+        ml_status["progress"] = 10
+        
+        # Lazy import to prevent startup timeout
+        from ml_engine.pnl_tracker import PnLTracker
+        from ml_engine.predictors import (
+            FintechPredictor, AiTalentPredictor, EsgPredictor, 
+            RegulatoryPredictor, SupplyChainPredictor
+        )
+        
+        ml_status["progress"] = 30
+        ml_status["logs"].append("ML Libraries loaded successfully.")
+        
+        ml_status["step"] = "Initializing PnL Tracker"
+        pnl_tracker = PnLTracker()
+        ml_status["progress"] = 40
+        
+        # Initialize Predictors one by one
+        verticals = [
+            ("fintech", FintechPredictor),
+            ("ai_talent", AiTalentPredictor),
+            ("esg", EsgPredictor),
+            ("regulatory", RegulatoryPredictor),
+            ("supply_chain", SupplyChainPredictor)
+        ]
+        
+        total_verts = len(verticals)
+        for i, (slug, cls) in enumerate(verticals):
+            ml_status["step"] = f"Training {slug.replace('_', ' ').title()} Model"
+            ml_status["logs"].append(f"Initializing {slug} predictor...")
+            
+            # Simulate "heavy" loading/training time for UX visibility
+            # In production, this would be actual model loading time
+            time.sleep(1.5) 
+            
+            predictors[slug] = cls(slug, pnl_tracker)
+            ml_status["logs"].append(f"✓ {slug} model ready.")
+            ml_status["progress"] = 40 + int(((i + 1) / total_verts) * 50)
+            
+        ml_status["step"] = "Finalizing"
+        ml_status["logs"].append("All ML models active. Engine online.")
+        ml_status["progress"] = 100
+        ml_status["ready"] = True
+        
+    except Exception as e:
+        ml_status["step"] = "Error"
+        ml_status["logs"].append(f"CRITICAL ERROR: {str(e)}")
+        logger.error(f"ML Init Failed: {e}")
 
 # Mount Static Files (React Build)
 # We will mount 'assets' to /assets, and serve index.html for root
@@ -54,8 +106,14 @@ if os.path.exists("frontend/dist/assets"):
 
 @app.on_event("startup")
 async def startup_event():
-    """Run data pipeline on startup"""
+    """Run data pipeline and ML init on startup"""
     logger.info("Triggering startup data pipeline...")
+    
+    # Start ML Init in Background
+    thread = threading.Thread(target=initialize_ml_engine)
+    thread.daemon = True
+    thread.start()
+    
     try:
         # Run the Premium Data Engine
         added_bytes = update_dataset()
@@ -282,9 +340,20 @@ async def download_dataset(filename: str):
         logger.error(f"Error downloading file: {e}")
         raise HTTPException(500, str(e))
 
+@app.get("/api/status")
+async def get_ml_status():
+    """Get initialization status of ML engine"""
+    return JSONResponse(ml_status)
+
 @app.get("/api/predict/{vertical}")
 async def get_prediction(vertical: str):
     """Get live ML prediction for a vertical"""
+    if not ml_status["ready"]:
+        return JSONResponse(
+            {"error": "ML Engine Loading", "detail": ml_status["step"]}, 
+            status_code=503
+        )
+
     try:
         if vertical not in predictors:
             raise HTTPException(404, "Predictor not found")
@@ -321,6 +390,12 @@ async def get_prediction(vertical: str):
 @app.get("/api/pnl")
 async def get_pnl_metrics():
     """Get global P&L tracking metrics"""
+    if not ml_status["ready"] or pnl_tracker is None:
+         return JSONResponse(
+            {"error": "ML Engine Loading", "detail": ml_status["step"]}, 
+            status_code=503
+        )
+        
     try:
         metrics = pnl_tracker.get_performance_metrics()
         return JSONResponse(metrics)
